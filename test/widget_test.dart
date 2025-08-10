@@ -11,20 +11,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:skillconnect/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('SkillConnect App loads', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(SkillConnectApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that our app title appears
+    expect(find.text('SkillConnect'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that location text appears
+    expect(find.text('Your Location'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that service categories section appears
+    expect(find.text('Service Categories'), findsOneWidget);
+
+    // Verify that quick actions section appears
+    expect(find.text('Quick Actions'), findsOneWidget);
+
+    // Verify that Post a Job button exists
+    expect(find.text('Post a Job'), findsOneWidget);
   });
 }
