@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'pages/login.dart';
+import 'pages/signup.dart';
 import 'pages/home.dart';
 
 void main() {
@@ -11,13 +13,22 @@ class SkillConnectApp extends StatelessWidget {
     return MaterialApp(
       title: 'SkillConnect',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // SkillConnect Color Scheme
+        primaryColor: Color(0xFF304D6D),
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: Color(0xFF304D6D),
+          secondary: Color(0xFF63ADF2),
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Roboto',
       ),
-      home: HomePage(),
+      // Start with login screen instead of home
+      home: LoginScreen(),
       routes: {
+        '/login': (context) => LoginScreen(),
+        '/signup': (context) => SignUpScreen(),
         '/home': (context) => HomePage(),
-        //'/jobs': (context) => JobPostingPage(),
+        //'/job-posting': (context) => JobPostingPage(),
         //'/worker-profile': (context) => WorkerProfilePage(),
         //'/chat': (context) => ChatPage(),
         //'/job-tracking': (context) => JobTrackingPage(),
