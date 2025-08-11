@@ -22,36 +22,79 @@ class _SelectServiceState extends State<SelectService> {
   String? selectedService;
 
   List<Service> services = [
-    Service(
-      'Cleaning',
-      'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
-    ),
-    Service(
-      'Plumber',
-      'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
-    ),
+    // Repairs
     Service(
       'Electrician',
       'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-multimeter-car-service-wanicon-flat-wanicon.png',
     ),
     Service(
-      'Painter',
-      'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-painter-male-occupation-avatar-itim2101-flat-itim2101.png',
+      'Plumber',
+      'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service('Carpenter', 'https://img.icons8.com/fluency/2x/drill.png'),
     Service(
-      'Gardener',
-      'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-gardener-male-occupation-avatar-itim2101-flat-itim2101.png',
-    ),
-    Service('Tailor', 'https://img.icons8.com/fluency/2x/sewing-machine.png'),
-    Service('Maid', 'https://img.icons8.com/color/2x/housekeeper-female.png'),
-    Service(
-      'Driver',
-      'https://img.icons8.com/external-sbts2018-lineal-color-sbts2018/2x/external-driver-women-profession-sbts2018-lineal-color-sbts2018.png',
+      'AC Repair',
+      'https://img.icons8.com/?size=100&id=Jskg4-JWkjF4&format=png&color=000000',
     ),
     Service(
-      'Cook',
-      'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-cooking-daily-routine-wanicon-flat-wanicon.png',
+      'Washing Machine Repair',
+      'https://img.icons8.com/?size=100&id=Jvd285hxXqK6&format=png&color=000000',
+    ),
+    Service(
+      'Refrigerator Repair',
+      'https://img.icons8.com/?size=100&id=56605&format=png&color=000000',
+    ),
+    Service(
+      'RO Water Purifier Repair',
+      'https://img.icons8.com/?size=100&id=WPAThkXXlAN9&format=png&color=000000',
+    ),
+    Service(
+      'Microwave Repair',
+      'https://img.icons8.com/?size=100&id=66304&format=png&color=000000',
+    ),
+    Service(
+      'Geyser Repair',
+      'https://img.icons8.com/?size=100&id=65540&format=png&color=000000',
+    ),
+    Service(
+      'Chimney & Hob Repair',
+      'https://img.icons8.com/?size=100&id=zY1O74QugicA&format=png&color=000000',
+    ),
+
+    // Cleaning and Pest Control
+    Service(
+      'Home Deep Cleaning',
+      'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
+    ),
+    Service(
+      'Pest Control',
+      'https://img.icons8.com/?size=100&id=0iDzTSlNteTH&format=png&color=000000',
+    ),
+    Service(
+      'Bathroom Cleaning',
+      'https://img.icons8.com/external-flaticons-flat-flat-icons/2x/external-bathroom-cleaning-flaticons-flat-flat-icons.png',
+    ),
+    Service(
+      'Kitchen Cleaning',
+      'https://img.icons8.com/external-flaticons-flat-flat-icons/2x/external-kitchen-cleaning-flaticons-flat-flat-icons.png',
+    ),
+    Service(
+      'Carpet Cleaning',
+      'https://img.icons8.com/?size=100&id=s36AxpVEwPRt&format=png&color=000000',
+    ),
+    Service(
+      'Car Cleaning',
+      'https://img.icons8.com/?size=100&id=tmJ81kcHHY3d&format=png&color=000000',
+    ),
+
+    // Home Projects
+    Service(
+      'Home Painters',
+      'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-painter-male-occupation-avatar-itim2101-flat-itim2101.png',
+    ),
+    Service(
+      'Packers & Movers',
+      'https://img.icons8.com/?size=100&id=R6SgTreFdP9v&format=png&color=000000',
     ),
   ];
 
