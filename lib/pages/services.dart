@@ -18,8 +18,6 @@ class _SelectServiceState extends State<SelectService> {
   // Color scheme
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color paleBlue = Color(0xFFA7CCED);
-  static const Color grayBlue = Color(0xFF82A0BC);
 
   String? selectedService;
 

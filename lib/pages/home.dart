@@ -26,9 +26,10 @@ class HomePageState extends State<HomePage> {
   // Bottom navigation
   int _currentIndex = 0;
 
-  List<Service> services = [
+  // Quick services for home page
+  List<Service> quickServices = [
     Service(
-      'Cleaning',
+      'AC Repair',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
@@ -36,100 +37,16 @@ class HomePageState extends State<HomePage> {
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
-      'Electrician',
-      'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-multimeter-car-service-wanicon-flat-wanicon.png',
-    ),
-    Service(
-      'Painter',
+      'More',
       'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-painter-male-occupation-avatar-itim2101-flat-itim2101.png',
     ),
-    Service('Carpenter', 'https://img.icons8.com/fluency/2x/drill.png'),
-    Service(
-      'Gardener',
-      'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-gardener-male-occupation-avatar-itim2101-flat-itim2101.png',
-    ),
   ];
-
-  List<Map<String, dynamic>> workers = [
-    {
-      'name': 'Alfredo Schafer',
-      'profession': 'Plumber',
-      'avatar': 'AS',
-      'rating': 4.8,
-    },
-    {
-      'name': 'Michelle Baldwin',
-      'profession': 'Cleaner',
-      'avatar': 'MB',
-      'rating': 4.6,
-    },
-    {
-      'name': 'Brenon Kalu',
-      'profession': 'Driver',
-      'avatar': 'BK',
-      'rating': 4.4,
-    },
-  ];
-
-  // Service icon and color mapping
-  Map<String, Map<String, dynamic>> serviceConfig = {
-    'Cleaning': {'icon': Icons.cleaning_services, 'color': Color(0xFF4CAF50)},
-    'Plumber': {'icon': Icons.plumbing, 'color': Color(0xFF2196F3)},
-    'Electrician': {
-      'icon': Icons.electrical_services,
-      'color': Color(0xFFFF9800),
-    },
-    'Painter': {'icon': Icons.format_paint, 'color': Color(0xFF9C27B0)},
-    'Carpenter': {'icon': Icons.carpenter, 'color': Color(0xFF795548)},
-    'Gardener': {'icon': Icons.local_florist, 'color': Color(0xFF4CAF50)},
-  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Welcome to SkillConnect',
-          style: TextStyle(
-            color: darkBlue,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          Container(
-            margin: EdgeInsets.only(right: 16),
-            child: IconButton(
-              onPressed: () {},
-              icon: Stack(
-                children: [
-                  Icon(Icons.notifications_outlined, color: darkBlue, size: 28),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: _currentIndex == 0
-          ? _buildHomeContent()
-          : _currentIndex == 1
-          ? SelectService()
-          : _buildProfileContent(),
+      body: _currentIndex == 0 ? _buildHomeContent() : _buildOtherContent(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -157,7 +74,7 @@ class HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.work_outline),
             activeIcon: Icon(Icons.work),
-            label: 'Services',
+            label: 'Jobs',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -170,41 +87,228 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildHomeContent() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Bar with User Info
+            _buildTopBar(),
+            SizedBox(height: 32),
+
+            // What service do you need?
+            Text(
+              'What service do you need?',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: darkBlue,
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // Search Bar
+            _buildSearchBar(),
+            SizedBox(height: 24),
+
+            // Quick Services Grid
+            _buildQuickServicesGrid(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Row(
+      children: [
+        // User Avatar
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: paleBlue),
+          child: ClipOval(
+            child: Image.network(
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Text(
+                    'A',
+                    style: TextStyle(
+                      color: darkBlue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        SizedBox(width: 12),
+
+        // User Info
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ahmad',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: darkBlue,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '10th street, Kabul',
+                    style: TextStyle(fontSize: 14, color: grayBlue),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: grayBlue, size: 20),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Notification Icon
+        Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          // Recent Section
-          _buildSectionHeader('Recent', 'View all'),
-          SizedBox(height: 16),
-          _buildRecentCard(),
-          SizedBox(height: 32),
-
-          // Categories Section
-          _buildSectionHeader('Categories', 'View all'),
-          SizedBox(height: 16),
-          _buildCategoriesGrid(),
-          SizedBox(height: 32),
-
-          // Top Rated Section
-          _buildSectionHeader('Top Rated', 'View all'),
-          SizedBox(height: 16),
-          _buildTopRatedList(),
+          Icon(Icons.search, color: grayBlue, size: 24),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Search for services',
+              style: TextStyle(fontSize: 16, color: grayBlue),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileContent() {
+  Widget _buildQuickServicesGrid() {
+    return Row(
+      children: quickServices.map((service) {
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              if (service.name == 'More') {
+                // Navigate to services page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SelectService()),
+                );
+              }
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Service Icon/Image
+                  Container(
+                    width: 50,
+                    height: 50,
+                    padding: EdgeInsets.all(8),
+                    child: service.name == 'More'
+                        ? Icon(Icons.arrow_forward, color: lightBlue, size: 28)
+                        : Image.network(
+                            service.imageUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.work,
+                                size: 28,
+                                color: lightBlue,
+                              );
+                            },
+                          ),
+                  ),
+                  SizedBox(height: 12),
+
+                  // Service Name
+                  Text(
+                    service.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: darkBlue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildOtherContent() {
+    String pageName = _currentIndex == 1 ? 'Jobs' : 'Profile';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person, size: 80, color: lightBlue),
+          Icon(
+            _currentIndex == 1 ? Icons.work : Icons.person,
+            size: 80,
+            color: lightBlue,
+          ),
           SizedBox(height: 20),
           Text(
-            'Profile Page',
+            '$pageName Page',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -215,257 +319,6 @@ class HomePageState extends State<HomePage> {
           Text('Coming Soon!', style: TextStyle(fontSize: 16, color: grayBlue)),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, String actionText) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: darkBlue,
-          ),
-        ),
-        TextButton(
-          onPressed: () {},
-          child: Text(
-            actionText,
-            style: TextStyle(
-              color: lightBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentCard() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: paleBlue),
-            child: Center(
-              child: Text(
-                'IK',
-                style: TextStyle(
-                  color: darkBlue,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 16),
-
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Isabel Kirkland',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: darkBlue,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Cleaner',
-                  style: TextStyle(fontSize: 14, color: grayBlue),
-                ),
-              ],
-            ),
-          ),
-
-          // View Profile Button
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              color: lightBlue,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Text(
-              'View Profile',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoriesGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1,
-      ),
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        final service = services[index];
-        final config =
-            serviceConfig[service.name] ??
-            {'icon': Icons.work, 'color': lightBlue};
-
-        return GestureDetector(
-          onTap: () {
-            // Navigate to category
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: config['color'].withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(config['icon'], color: config['color'], size: 28),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  service.name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: darkBlue,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTopRatedList() {
-    return Column(
-      children: workers.map((worker) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 12),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Avatar
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: paleBlue,
-                ),
-                child: Center(
-                  child: Text(
-                    worker['avatar'],
-                    style: TextStyle(
-                      color: darkBlue,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 16),
-
-              // Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      worker['name'],
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: darkBlue,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      worker['profession'],
-                      style: TextStyle(fontSize: 14, color: grayBlue),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Rating
-              Row(
-                children: [
-                  Text(
-                    worker['rating'].toString(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: darkBlue,
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(Icons.star, color: Colors.amber, size: 18),
-                ],
-              ),
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 }
