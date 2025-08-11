@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _passwordFocusNode = FocusNode();
@@ -99,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.only(bottom: 20),
                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   decoration: BoxDecoration(
-                    color: mediumBlue.withOpacity(0.3),
+                    color: mediumBlue.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: grayBlue, width: 1),
                   ),
@@ -138,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.only(bottom: 15),
                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   decoration: BoxDecoration(
-                    color: mediumBlue.withOpacity(0.3),
+                    color: mediumBlue.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: grayBlue, width: 1),
                   ),
@@ -204,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 20),
 
                 // Login Button
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
@@ -249,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 20),
 
                 // Google Sign In Button
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: OutlinedButton(
@@ -320,7 +321,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _performLogin() {
+  void _performLogin() async {
     // Show loading indicator
     showDialog(
       context: context,
@@ -335,18 +336,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     // Simulate API call delay
-    Future.delayed(Duration(seconds: 2), () {
-      Navigator.of(context).pop(); // Close loading dialog
+    await Future.delayed(Duration(seconds: 2));
 
-      // Navigate to home page
-      Navigator.pushReplacementNamed(context, '/home');
+    // Check if widget is still mounted
+    if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login Successful! Welcome to SkillConnect'),
-          backgroundColor: Color(0xFF63ADF2),
-        ),
-      );
-    });
+    Navigator.of(context).pop(); // Close loading dialog
+    Navigator.pushReplacementNamed(context, '/home'); // Navigate to home page
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Login Successful! Welcome to SkillConnect'),
+        backgroundColor: Color(0xFF63ADF2),
+      ),
+    );
   }
 }

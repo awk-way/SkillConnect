@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'pages/login.dart';
 import 'pages/signup.dart';
 import 'pages/home.dart';
+import 'pages/services.dart';
 
 void main() {
   runApp(SkillConnectApp());
 }
 
 class SkillConnectApp extends StatelessWidget {
+  const SkillConnectApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,12 +24,12 @@ class SkillConnectApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Roboto',
       ),
-      // Start with login screen instead of home
       home: LoginScreen(),
       routes: {
         '/login': (context) => LoginScreen(),
         '/signup': (context) => SignUpScreen(),
         '/home': (context) => HomePage(),
+        '/services': (context) => SelectService(),
         //'/job-posting': (context) => JobPostingPage(),
         //'/worker-profile': (context) => WorkerProfilePage(),
         //'/chat': (context) => ChatPage(),
