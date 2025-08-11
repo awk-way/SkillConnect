@@ -23,7 +23,6 @@ class HomePageState extends State<HomePage> {
   static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
 
-  // Bottom navigation
   int _currentIndex = 0;
 
   // Quick services for home page
@@ -97,7 +96,6 @@ class HomePageState extends State<HomePage> {
             _buildTopBar(),
             SizedBox(height: 32),
 
-            // What service do you need?
             Text(
               'What service do you need?',
               style: TextStyle(
@@ -155,7 +153,7 @@ class HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Ahmad',
+                'User Name',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -165,7 +163,7 @@ class HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Text(
-                    '10th street, Kabul',
+                    'Quick Location',
                     style: TextStyle(fontSize: 14, color: grayBlue),
                   ),
                   Icon(Icons.keyboard_arrow_down, color: grayBlue, size: 20),
