@@ -1,11 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  SignUpScreenState createState() => SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -84,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   margin: EdgeInsets.only(bottom: 20),
                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                   decoration: BoxDecoration(
-                    color: mediumBlue.withOpacity(0.3),
+                    color: mediumBlue.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: grayBlue, width: 1),
                   ),
@@ -261,7 +264,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: 30),
 
                 // Sign Up Button
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
@@ -340,7 +343,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       margin: EdgeInsets.only(bottom: 20),
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: mediumBlue.withOpacity(0.3),
+        color: mediumBlue.withValues(alpha: .3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
