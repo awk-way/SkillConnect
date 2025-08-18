@@ -208,9 +208,9 @@ class UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
 
   void _continueToSignup() {
     if (_selectedUserType == 'Customer') {
-      Navigator.pushNamed(context, '/csignup');
+      Navigator.pushNamed(context, '/customer-signup');
     } else if (_selectedUserType == 'Worker') {
-      Navigator.pushNamed(context, '/wsignup');
+      Navigator.pushNamed(context, '/worker-signup');
     }
   }
 }
