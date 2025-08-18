@@ -1,6 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -368,7 +368,9 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _performSignUp() {
+  void _performSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
     // Show loading indicator
     showDialog(
       context: context,
@@ -382,12 +384,68 @@ class SignUpScreenState extends State<SignUpScreen> {
       },
     );
 
-    // Simulate API call delay
-    Future.delayed(Duration(seconds: 2), () {
+    try {
+      // Create user in Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+
+      String uid = userCredential.user!.uid;
+
+      // Determine collection name based on user type
+      String collectionName = _userType == 'Customer'
+          ? 'users'
+          : 'serviceProvider';
+
+      // Prepare common user data
+      Map<String, dynamic> userData = {
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'userType': _userType, // Store the user type for reference
+      };
+
+      // Add additional fields based on user type
+      if (_userType == 'Worker') {
+        // Add serviceProvider specific fields
+        userData.addAll({
+          'availability': true,
+          'contact': _phoneController.text.trim(),
+          'location': [0, 0], // Default location, can be updated later
+          'password': _passwordController.text
+              .trim(), // Note: Consider encrypting this
+          'profilepic': '', // Empty initially
+          'rating': {'0': '', '1': 1, '2': ''},
+          'service': {'0': ''},
+        });
+      } else {
+        // Add users (customer) specific fields
+        userData.addAll({
+          'address': [0, 0, 0], // Default address coordinates
+          'city': '',
+          'contact': _phoneController.text.trim(),
+          'jobsHistory': {'0': ''},
+          'profilePic': '',
+        });
+      }
+
+      // Save user data in the appropriate Firestore collection
+      await FirebaseFirestore.instance
+          .collection(collectionName)
+          .doc(uid)
+          .set(userData);
+
+      // ✅ Check if widget is still mounted before using context
+      if (!mounted) return;
+
       Navigator.of(context).pop(); // Close loading dialog
 
-      // Navigate to home page
-      Navigator.pushReplacementNamed(context, '/home');
+      // Navigate to appropriate screen based on user type
+      String routeName = _userType == 'Customer' ? '/home' : '/home';
+      Navigator.pushReplacementNamed(context, routeName);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -397,6 +455,27 @@ class SignUpScreenState extends State<SignUpScreen> {
           backgroundColor: lightBlue,
         ),
       );
-    });
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      String message = 'Something went wrong';
+      if (e.code == 'email-already-in-use') {
+        message = 'This email is already registered';
+      } else if (e.code == 'weak-password') {
+        message = 'Password should be at least 6 characters';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 }
