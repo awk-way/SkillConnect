@@ -4,6 +4,8 @@ import 'firebase_options.dart';
 
 import 'pages/login.dart';
 import 'pages/signup.dart';
+import 'pages/csignup.dart';
+import 'pages/wsignup.dart';
 import 'pages/home.dart';
 import 'pages/services.dart';
 
@@ -32,7 +34,9 @@ class SkillConnectApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/login': (context) => LoginScreen(),
-        '/signup': (context) => SignUpScreen(),
+        '/signup': (context) => UserTypeSelectionScreen(),
+        '/csignup': (context) => CustomerSignUpScreen(),
+        '/wsignup': (context) => WorkerSignUpScreen(),
         '/home': (context) => HomePage(),
         '/services': (context) => SelectService(),
         //'/job-posting': (context) => JobPostingPage(),
