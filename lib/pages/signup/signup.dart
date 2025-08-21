@@ -124,7 +124,7 @@ class UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacementNamed(context, '/login');
+                    Navigator.pushReplacementNamed(context, '/signup/login');
                   },
                   child: Text(
                     'Login',
@@ -208,9 +208,9 @@ class UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
 
   void _continueToSignup() {
     if (_selectedUserType == 'Customer') {
-      Navigator.pushNamed(context, '/csignup');
+      Navigator.pushNamed(context, '/signup/csignup');
     } else if (_selectedUserType == 'Worker') {
-      Navigator.pushNamed(context, '/wsignup');
+      Navigator.pushNamed(context, '/signup/wsignup');
     }
   }
 }

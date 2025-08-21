@@ -482,8 +482,6 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
             'location': [0, 0], // Default coordinates, can be updated later
             'address': _addressController.text.trim(),
             'availability': true,
-            'password': _passwordController.text
-                .trim(), // Note: Consider encryption
             'profilepic': '',
             'rating': {'0': '', '1': 1, '2': ''},
             'service': servicesMap,

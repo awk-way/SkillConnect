@@ -348,7 +348,6 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         'contact': _contactController.text.trim(),
         'address': [0, 0, 0], // Default coordinates, can be updated later
         'city': _addressController.text.trim(),
-        'phone': _contactController.text.trim(),
         'jobsHistory': {'0': ''},
         'profilePic': '',
         'userType': 'Customer',
