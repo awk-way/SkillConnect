@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:skillconnect/pages/services.dart';
+import 'package:skillconnect/pages/customer/profile.dart';
+import 'package:skillconnect/pages/customer/services.dart';
 
-// Service class definition
 class Service {
   final String name;
   final String imageUrl;
@@ -9,13 +9,13 @@ class Service {
   Service(this.name, this.imageUrl);
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CustomerHomePage extends StatefulWidget {
+  const CustomerHomePage({super.key});
   @override
-  HomePageState createState() => HomePageState();
+  CustomerHomePageState createState() => CustomerHomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class CustomerHomePageState extends State<CustomerHomePage> {
   // Color scheme
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color mediumBlue = Color(0xFF545E75);
@@ -294,29 +294,33 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildOtherContent() {
-    String pageName = _currentIndex == 1 ? 'Jobs' : 'Profile';
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _currentIndex == 1 ? Icons.work : Icons.person,
-            size: 80,
-            color: lightBlue,
-          ),
-          SizedBox(height: 20),
-          Text(
-            '$pageName Page',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
+    if (_currentIndex == 1) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.work, size: 80, color: lightBlue),
+            SizedBox(height: 20),
+            Text(
+              'Jobs Page',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
-          ),
-          SizedBox(height: 12),
-          Text('Coming Soon!', style: TextStyle(fontSize: 16, color: grayBlue)),
-        ],
-      ),
-    );
+            SizedBox(height: 12),
+            Text(
+              'Coming Soon!',
+              style: TextStyle(fontSize: 16, color: grayBlue),
+            ),
+          ],
+        ),
+      );
+    } else if (_currentIndex == 2) {
+      return CustomerProfile();
+    } else {
+      return CustomerHomePage();
+    }
   }
 }

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class WorkerSignUpScreen extends StatefulWidget {
-  const WorkerSignUpScreen({super.key});
+class CustomerSignUpScreen extends StatefulWidget {
+  const CustomerSignUpScreen({super.key});
 
   @override
-  WorkerSignUpScreenState createState() => WorkerSignUpScreenState();
+  CustomerSignUpScreenState createState() => CustomerSignUpScreenState();
 }
 
-class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
+class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
@@ -28,27 +28,6 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
-
-  // Available services
-  final List<String> _availableServices = [
-    'Plumbing',
-    'Electrical Work',
-    'Carpentry',
-    'Painting',
-    'Cleaning',
-    'Gardening',
-    'Appliance Repair',
-    'HVAC Services',
-    'Masonry',
-    'Roofing',
-    'Pest Control',
-    'Moving Services',
-    'Handyman Services',
-    'Auto Repair',
-    'Other',
-  ];
-
-  final List<String> _selectedServices = [];
 
   // SkillConnect Color Scheme
   static const Color darkBlue = Color(0xFF304D6D);
@@ -81,7 +60,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
-        title: Text('Worker Signup', style: TextStyle(color: Colors.white)),
+        title: Text('Customer Signup', style: TextStyle(color: Colors.white)),
       ),
       body: Container(
         margin: EdgeInsets.symmetric(horizontal: 30),
@@ -94,11 +73,11 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                 SizedBox(height: 20),
 
                 // Header
-                Icon(Icons.build, size: 60, color: lightBlue),
+                Icon(Icons.person_add, size: 60, color: lightBlue),
                 SizedBox(height: 20),
 
                 Text(
-                  'Create Worker Account',
+                  'Create Customer Account',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -107,7 +86,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Offer your skills and earn money',
+                  'Find skilled workers for your tasks',
                   style: TextStyle(color: paleBlue, fontSize: 16),
                 ),
                 SizedBox(height: 30),
@@ -185,9 +164,6 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                   },
                 ),
 
-                // Services Selection
-                _buildServicesSelection(),
-
                 // Password Field
                 _buildInputField(
                   controller: _passwordController,
@@ -260,7 +236,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _performWorkerSignUp,
+                    onPressed: _isLoading ? null : _performCustomerSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: lightBlue,
                       shape: RoundedRectangleBorder(
@@ -271,7 +247,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            'Create Worker Account',
+                            'Create Customer Account',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -348,108 +324,8 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     );
   }
 
-  Widget _buildServicesSelection() {
-    return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: mediumBlue.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: grayBlue, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.work_outline, color: lightBlue),
-              SizedBox(width: 10),
-              Text(
-                'Services Offered *',
-                style: TextStyle(
-                  color: paleBlue,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Select one or more services you provide:',
-            style: TextStyle(
-              color: paleBlue.withValues(alpha: 0.8),
-              fontSize: 14,
-            ),
-          ),
-          SizedBox(height: 15),
-
-          // Services chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _availableServices.map((service) {
-              bool isSelected = _selectedServices.contains(service);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedServices.remove(service);
-                    } else {
-                      _selectedServices.add(service);
-                    }
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? lightBlue : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? lightBlue : grayBlue,
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    service,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : paleBlue,
-                      fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.w500
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-
-          if (_selectedServices.isEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: 10),
-              child: Text(
-                'Please select at least one service',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _performWorkerSignUp() async {
+  void _performCustomerSignUp() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedServices.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select at least one service'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
 
     setState(() {
       _isLoading = true;
@@ -465,41 +341,29 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
 
       String uid = userCredential.user!.uid;
 
-      // Prepare services map
-      Map<String, dynamic> servicesMap = {};
-      for (int i = 0; i < _selectedServices.length; i++) {
-        servicesMap[i.toString()] = _selectedServices[i];
-      }
-
-      // Save worker data in Firestore
-      await FirebaseFirestore.instance
-          .collection('serviceProvider')
-          .doc(uid)
-          .set({
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'contact': _contactController.text.trim(),
-            'location': [0, 0], // Default coordinates, can be updated later
-            'address': _addressController.text.trim(),
-            'availability': true,
-            'password': _passwordController.text
-                .trim(), // Note: Consider encryption
-            'profilepic': '',
-            'rating': {'0': '', '1': 1, '2': ''},
-            'service': servicesMap,
-            'userType': 'Worker',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+      // Save customer data in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'contact': _contactController.text.trim(),
+        'address': [0, 0, 0], // Default coordinates, can be updated later
+        'city': _addressController.text.trim(),
+        'jobsHistory': {'0': ''},
+        'profilePic': '',
+        'userType': 'Customer',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       if (!mounted) return;
 
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/customer/home',
+        (Route<dynamic> route) => false,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Worker account created successfully!'),
+          content: Text('Customer account created successfully!'),
           backgroundColor: lightBlue,
         ),
       );

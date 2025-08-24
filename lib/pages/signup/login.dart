@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,6 +14,7 @@ class LoginScreenState extends State<LoginScreen> {
   final FocusNode _passwordFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   // SkillConnect Color Scheme
   static const Color darkBlue = Color(0xFF304D6D); // Primary dark
@@ -19,6 +22,8 @@ class LoginScreenState extends State<LoginScreen> {
   static const Color lightBlue = Color(0xFF63ADF2); // Accent blue
   static const Color paleBlue = Color(0xFFA7CCED); // Light accent
   static const Color grayBlue = Color(0xFF82A0BC); // Medium accent
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void dispose() {
@@ -209,12 +214,13 @@ class LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Simulate login process
-                        _performLogin();
-                      }
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              _performLogin();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: lightBlue,
                       shape: RoundedRectangleBorder(
@@ -222,14 +228,20 @@ class LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 3,
                     ),
-                    child: Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Login',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
 
@@ -297,7 +309,7 @@ class LoginScreenState extends State<LoginScreen> {
                     GestureDetector(
                       onTap: () {
                         // Navigate to sign up page
-                        Navigator.pushNamed(context, '/signup');
+                        Navigator.pushNamed(context, '/signup/signup');
                       },
                       child: Text(
                         'Sign Up',
@@ -321,34 +333,112 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _performLogin() async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(lightBlue),
+  Future<void> _performLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      // 1. Sign in with Firebase Auth
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      String uid = userCredential.user!.uid;
+
+      // 2. Fetch user data from Firestore
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      // If not in 'users', try 'serviceProvider'
+      if (!userDoc.exists) {
+        userDoc = await _firestore.collection('serviceProvider').doc(uid).get();
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        String userType = userData['userType'] ?? 'Customer';
+
+        // Navigate based on user type
+        if (userType == 'Worker') {
+          Navigator.pushReplacementNamed(context, '/worker/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/customer/home');
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome back, ${userData['name'] ?? 'User'}!'),
+            backgroundColor: lightBlue,
           ),
         );
+      } else {
+        _showErrorDialog(
+          'Login Failed',
+          'No user record found in Firestore. Please contact support.',
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      String message = 'Login failed';
+      if (e.code == 'user-not-found') {
+        message = 'No account found for this email';
+      } else if (e.code == 'wrong-password') {
+        message = 'Invalid password';
+      }
+
+      _showErrorDialog('Login Failed', message);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      _showErrorDialog('Error', 'Something went wrong: $e');
+    }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            title,
+            style: TextStyle(color: darkBlue, fontWeight: FontWeight.bold),
+          ),
+          content: Text(message, style: TextStyle(color: mediumBlue)),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: TextStyle(color: lightBlue, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        );
       },
-    );
-
-    // Simulate API call delay
-    await Future.delayed(Duration(seconds: 2));
-
-    // Check if widget is still mounted
-    if (!mounted) return;
-
-    Navigator.of(context).pop(); // Close loading dialog
-    Navigator.pushReplacementNamed(context, '/home'); // Navigate to home page
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Login Successful! Welcome to SkillConnect'),
-        backgroundColor: Color(0xFF63ADF2),
-      ),
     );
   }
 }
