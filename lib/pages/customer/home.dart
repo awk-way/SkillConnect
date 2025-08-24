@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skillconnect/pages/customer/profile.dart';
 import 'package:skillconnect/pages/customer/services.dart';
 
 class Service {
@@ -293,29 +294,33 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   }
 
   Widget _buildOtherContent() {
-    String pageName = _currentIndex == 1 ? 'Jobs' : 'Profile';
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _currentIndex == 1 ? Icons.work : Icons.person,
-            size: 80,
-            color: lightBlue,
-          ),
-          SizedBox(height: 20),
-          Text(
-            '$pageName Page',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
+    if (_currentIndex == 1) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.work, size: 80, color: lightBlue),
+            SizedBox(height: 20),
+            Text(
+              'Jobs Page',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
-          ),
-          SizedBox(height: 12),
-          Text('Coming Soon!', style: TextStyle(fontSize: 16, color: grayBlue)),
-        ],
-      ),
-    );
+            SizedBox(height: 12),
+            Text(
+              'Coming Soon!',
+              style: TextStyle(fontSize: 16, color: grayBlue),
+            ),
+          ],
+        ),
+      );
+    } else if (_currentIndex == 2) {
+      return CustomerProfile();
+    } else {
+      return CustomerHomePage();
+    }
   }
 }
