@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skillconnect/pages/services.dart';
+import 'package:skillconnect/pages/customer/services.dart';
 
-// Service class definition
 class Service {
   final String name;
   final String imageUrl;
@@ -9,13 +8,13 @@ class Service {
   Service(this.name, this.imageUrl);
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CustomerHomePage extends StatefulWidget {
+  const CustomerHomePage({super.key});
   @override
-  HomePageState createState() => HomePageState();
+  CustomerHomePageState createState() => CustomerHomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class CustomerHomePageState extends State<CustomerHomePage> {
   // Color scheme
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color mediumBlue = Color(0xFF545E75);

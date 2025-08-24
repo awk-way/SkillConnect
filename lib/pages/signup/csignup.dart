@@ -356,9 +356,10 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/customer/home',
+        (Route<dynamic> route) => false,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

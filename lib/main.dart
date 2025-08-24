@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:skillconnect/pages/worker/home.dart';
 import 'firebase_options.dart';
 
 import 'pages/signup/login.dart';
 import 'pages/signup/signup.dart';
 import 'pages/signup/csignup.dart';
 import 'pages/signup/wsignup.dart';
-import 'pages/home.dart';
-import 'pages/services.dart';
+import 'pages/customer/home.dart';
+import 'pages/customer/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,8 +38,9 @@ class SkillConnectApp extends StatelessWidget {
         '/signup/signup': (context) => UserTypeSelectionScreen(),
         '/signup/csignup': (context) => CustomerSignUpScreen(),
         '/signup/wsignup': (context) => WorkerSignUpScreen(),
-        '/home': (context) => HomePage(),
-        '/services': (context) => SelectService(),
+        '/customer/home': (context) => CustomerHomePage(),
+        '/customer/services': (context) => SelectService(),
+        '/worker/home': (context) => WorkerHomePage(),
         //'/job-posting': (context) => JobPostingPage(),
         //'/worker-profile': (context) => WorkerProfilePage(),
         //'/chat': (context) => ChatPage(),

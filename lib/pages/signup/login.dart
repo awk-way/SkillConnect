@@ -371,9 +371,9 @@ class LoginScreenState extends State<LoginScreen> {
 
         // Navigate based on user type
         if (userType == 'Worker') {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/worker/home');
         } else {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/customer/home');
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -441,14 +441,4 @@ class LoginScreenState extends State<LoginScreen> {
       },
     );
   }
-
-  // Optional: Store user data locally for session management
-  // Future<void> _storeUserData(String userId, Map<String, dynamic> userData, String userType) async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('user_id', userId);
-  //   await prefs.setString('user_name', userData['name'] ?? '');
-  //   await prefs.setString('user_email', userData['email'] ?? '');
-  //   await prefs.setString('user_type', userType);
-  //   await prefs.setBool('is_logged_in', true);
-  // }
 }

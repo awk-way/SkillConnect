@@ -491,9 +491,10 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/worker/home',
+        (Route<dynamic> route) => false,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
