@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:skillconnect/pages/customer/editprofile.dart'; 
+import 'package:skillconnect/pages/customer/editprofile.dart';
+import 'package:skillconnect/pages/signup/login.dart'; 
 
 class CustomerProfile extends StatefulWidget {
   const CustomerProfile({super.key});
@@ -68,8 +69,7 @@ class CustomerProfileState extends State<CustomerProfile> {
     try {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        // Navigate to a welcome or login screen and clear the navigation stack
-        Navigator.of(context).pushNamedAndRemoveUntil('/welcome', (Route<dynamic> route) => false);
+        Navigator.pushReplacementNamed(context, '/signup/login');
       }
     } catch (e) {
        if (mounted) {
