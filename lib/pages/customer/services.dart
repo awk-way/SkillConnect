@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skillconnect/pages/customer/ser_agents.dart';
 
-// Renamed to ServiceCategory for clarity and consistency
 class ServiceCategory {
   final String name;
   final String imageUrl;
@@ -23,18 +22,16 @@ class _SelectServiceState extends State<SelectService> {
 
   String? selectedService;
 
-  // Using the new, expanded list of services provided
   final List<ServiceCategory> services = [
-    // Repairs
     ServiceCategory(
-      'Electrician',
+      'Electrical Work', 
       'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-multimeter-car-service-wanicon-flat-wanicon.png',
     ),
     ServiceCategory(
-      'Plumber',
+      'Plumbing',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
-    ServiceCategory('Carpenter', 'https://img.icons8.com/fluency/2x/drill.png'),
+    ServiceCategory('Carpentry', 'https://img.icons8.com/fluency/2x/drill.png'), 
     ServiceCategory(
       'AC Repair',
       'https://img.icons8.com/?size=100&id=Jskg4-JWkjF4&format=png&color=000000',
@@ -63,9 +60,8 @@ class _SelectServiceState extends State<SelectService> {
       'Chimney & Hob Repair',
       'https://img.icons8.com/?size=100&id=zY1O74QugicA&format=png&color=000000',
     ),
-    // Cleaning and Pest Control
     ServiceCategory(
-      'Home Deep Cleaning',
+      'Cleaning', 
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     ServiceCategory(
@@ -88,13 +84,12 @@ class _SelectServiceState extends State<SelectService> {
       'Car Cleaning',
       'https://img.icons8.com/?size=100&id=tmJ81kcHHY3d&format=png&color=000000',
     ),
-    // Home Projects
     ServiceCategory(
-      'Home Painters',
+      'Painting',
       'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-painter-male-occupation-avatar-itim2101-flat-itim2101.png',
     ),
     ServiceCategory(
-      'Packers & Movers',
+      'Moving Services',
       'https://img.icons8.com/?size=100&id=R6SgTreFdP9v&format=png&color=000000',
     ),
   ];
@@ -210,7 +205,6 @@ class _SelectServiceState extends State<SelectService> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to the next page with the selected service
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -261,4 +255,3 @@ class _SelectServiceState extends State<SelectService> {
     );
   }
 }
-
