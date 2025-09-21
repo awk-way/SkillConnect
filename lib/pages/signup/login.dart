@@ -371,8 +371,10 @@ class LoginScreenState extends State<LoginScreen> {
 
         if (userType == 'Agent') {
           Navigator.pushReplacementNamed(context, '/agent/home');
-        } else {
+        } else if (userType == 'Customer') {
           Navigator.pushReplacementNamed(context, '/customer/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/worker/home');
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

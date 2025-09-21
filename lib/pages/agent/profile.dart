@@ -118,7 +118,6 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
           _buildServicesCard(services),
           const SizedBox(height: 20),
           
-          // --- ADDED: Add Worker Button ---
           _buildOptionTile(Icons.person_add_alt_1, 'Add Worker', onTap: () {
             Navigator.push(
               context,
@@ -126,7 +125,7 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
             );
           }),
           _buildOptionTile(Icons.edit, 'Edit Profile', onTap: () {
-            // Navigate to Edit Agent Profile Page
+            Navigator.pushNamed(context, '/agent/edit_profile').then((_) => _fetchAgentData());
           }),
           _buildOptionTile(Icons.settings, 'Settings'),
           _buildOptionTile(Icons.help_outline, 'Help & Support'),

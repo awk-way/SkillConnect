@@ -3,9 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
-import 'package:skillconnect/pages/agent/workers.dart';
+import 'package:skillconnect/pages/agent/workers.dart'; 
 
-// --- Data Models ---
 class Agent {
   final String organisationName;
   final String profilePicUrl;
@@ -43,8 +42,8 @@ class _AgentHomePageState extends State<AgentHomePage> {
     final List<Widget> pages = [
       const AgentDashboard(),
       _buildPlaceholderPage('My Jobs', Icons.work_history_outlined),
-      const MyWorkersPage(),
-      const AgentProfilePage(),
+      const MyWorkersPage(), 
+      const AgentProfilePage(), 
     ];
 
     return Scaffold(
@@ -65,7 +64,6 @@ class _AgentHomePageState extends State<AgentHomePage> {
     );
   }
 
-  // Placeholder for other pages
   Widget _buildPlaceholderPage(String title, IconData icon) {
     return Scaffold(
       appBar: AppBar(
@@ -112,7 +110,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
 
       if (agentDoc.exists && userDoc.exists) {
         return Agent(
-          organisationName: agentDoc.get('organisationName') ?? 'Agent',
+          organisationName: agentDoc.get('orgName') ?? 'Agent',
           profilePicUrl: userDoc.get('profilePicUrl') ?? '',
         );
       }
@@ -219,8 +217,6 @@ class _AgentDashboardState extends State<AgentDashboard> {
           stream: FirebaseFirestore.instance
               .collection('jobs')
               .where('status', isEqualTo: 'Pending')
-              // Note: This query might require a new composite index in Firestore.
-              // .where('agentId', isEqualTo: agentId) 
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
