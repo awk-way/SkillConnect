@@ -39,7 +39,7 @@ class SkillConnectApp extends StatelessWidget {
         '/signup/login': (context) => LoginScreen(),
         '/signup/signup': (context) => UserTypeSelectionScreen(),
         '/signup/csignup': (context) => CustomerSignUpScreen(),
-        '/signup/wsignup': (context) => WorkerSignUpScreen(),
+        '/signup/wsignup': (context) => AgentSignUpScreen(),
         '/customer/home': (context) => CustomerHomePage(),
         '/customer/services': (context) => SelectService(),
         '/customer/profile': (context) => CustomerProfile(),
