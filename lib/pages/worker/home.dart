@@ -1,253 +1,265 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/worker/profile.dart';
 
 class WorkerHomePage extends StatefulWidget {
   const WorkerHomePage({super.key});
+
   @override
-  WorkerHomePageState createState() => WorkerHomePageState();
+  State<WorkerHomePage> createState() => _WorkerHomePageState();
 }
 
-class WorkerHomePageState extends State<WorkerHomePage> {
-  static const Color darkBlue = Color(0xFF304D6D);
-  static const Color mediumBlue = Color(0xFF545E75);
-  static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color paleBlue = Color(0xFFA7CCED);
-  static const Color grayBlue = Color(0xFF82A0BC);
-
-  bool isAvailable = true;
+class _WorkerHomePageState extends State<WorkerHomePage> {
   int _currentIndex = 0;
+  
+  // --- UI Color Scheme ---
+  static const Color darkBlue = Color(0xFF304D6D);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      const WorkerDashboard(),
+      _buildPlaceholderPage('My Jobs', Icons.work_history_outlined),
+      const WorkerProfilePage(),
+    ];
+
+    return Scaffold(
+      body: pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF63ADF2), 
+        unselectedItemColor: const Color(0xFF82A0BC), 
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.work_history_outlined), activeIcon: Icon(Icons.work_history), label: 'Jobs'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+
+  // Placeholder for other pages
+  Widget _buildPlaceholderPage(String title, IconData icon) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        automaticallyImplyLeading: false,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 80, color: const Color(0xFF63ADF2)),
+            const SizedBox(height: 20),
+            Text('$title Page', style: const TextStyle(fontSize: 24, color: darkBlue)),
+            const Text('Coming Soon!', style: TextStyle(color: Color(0xFF82A0BC))),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- Dashboard Screen ---
+class WorkerDashboard extends StatefulWidget {
+  const WorkerDashboard({super.key});
+
+  @override
+  State<WorkerDashboard> createState() => _WorkerDashboardState();
+}
+
+class _WorkerDashboardState extends State<WorkerDashboard> {
+  // --- UI Color Scheme ---
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color lightBlue = Color(0xFF63ADF2);
+  static const Color grayBlue = Color(0xFF82A0BC);
+  
+  final String? workerId = FirebaseAuth.instance.currentUser?.uid;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: _currentIndex == 0 ? _buildWorkerHome() : _buildOtherContent(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: lightBlue,
-        unselectedItemColor: grayBlue,
-        selectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work_outline),
-            activeIcon: Icon(Icons.work),
-            label: 'Jobs',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        elevation: 0,
+        title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
+        automaticallyImplyLeading: false,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildWelcomeSection(),
+          const SizedBox(height: 24),
+          _buildAvailabilityToggle(),
+          const SizedBox(height: 24),
+          _buildNewJobsSection(),
         ],
       ),
     );
   }
 
-  Widget _buildWorkerHome() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            SizedBox(height: 24),
-            _buildEarningsCard(),
-            SizedBox(height: 24),
-            Text(
-              'Your Jobs',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: darkBlue,
-              ),
-            ),
-            SizedBox(height: 12),
-            _buildJobsList(),
-            SizedBox(height: 24),
-          ],
+  Widget _buildWelcomeSection() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(workerId).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Text("Loading...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue));
+        }
+        final userName = snapshot.data?.get('name') ?? 'Worker';
+        return Text(
+          'Hello, $userName 👋',
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: darkBlue),
+        );
+      },
+    );
+  }
+
+  Widget _buildAvailabilityToggle() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('workers').doc(workerId).snapshots(),
+          builder: (context, snapshot) {
+            bool isAvailable = false;
+            if (snapshot.hasData) {
+              isAvailable = snapshot.data?.get('availability') ?? false;
+            }
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Are you available for new jobs?", style: TextStyle(fontSize: 16, color: darkBlue)),
+                Switch(
+                  value: isAvailable,
+                  onChanged: (value) {
+                    FirebaseFirestore.instance
+                        .collection('workers')
+                        .doc(workerId)
+                        .update({'availability': value});
+                  },
+                  activeColor: lightBlue,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildNewJobsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: paleBlue,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-              ),
-            ),
-            SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hello, Worker',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: darkBlue,
-                  ),
-                ),
-                Text(
-                  isAvailable ? 'Available for work' : 'Currently Unavailable',
-                  style: TextStyle(fontSize: 14, color: grayBlue),
-                ),
-              ],
-            ),
-          ],
+        const Text(
+          "Your New Assignments",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: darkBlue),
         ),
-        Switch(
-          value: isAvailable,
-          onChanged: (val) {
-            setState(() {
-              isAvailable = val;
-            });
+        const SizedBox(height: 16),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('jobs')
+              .where('workerId', isEqualTo: workerId)
+              .where('status', isEqualTo: 'Assigned') // Or 'Accepted'
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: lightBlue));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Text("You have no new job assignments.", style: TextStyle(color: grayBlue));
+            }
+            
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final doc = snapshot.data!.docs[index];
+                return NewJobCard(jobData: doc.data() as Map<String, dynamic>);
+              },
+            );
           },
-          activeColor: lightBlue,
         ),
       ],
     );
   }
+}
 
-  Widget _buildEarningsCard() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: lightBlue.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total Earnings',
-                style: TextStyle(color: grayBlue, fontSize: 14),
-              ),
-              SizedBox(height: 4),
-              Text(
-                '₹8,540',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: darkBlue,
+class NewJobCard extends StatefulWidget {
+  final Map<String, dynamic> jobData;
+  const NewJobCard({super.key, required this.jobData});
+
+  @override
+  State<NewJobCard> createState() => _NewJobCardState();
+}
+
+class _NewJobCardState extends State<NewJobCard> {
+  String _customerName = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCustomerName();
+  }
+
+  Future<void> _fetchCustomerName() async {
+    try {
+      final userId = widget.jobData['userId'];
+      if (userId == null) {
+        setState(() => _customerName = 'Unknown Customer');
+        return;
+      }
+      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      if(doc.exists && mounted) {
+        setState(() => _customerName = doc.data()?['name'] ?? 'Customer');
+      }
+    } catch(e) {
+      if(mounted) setState(() => _customerName = 'Error');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = widget.jobData['title'] ?? 'No Title';
+    final timestamp = widget.jobData['createdAt'] as Timestamp?;
+    final date = timestamp != null ? DateFormat('d MMM, h:mm a').format(timestamp.toDate()) : 'No date';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Divider(height: 16),
+            Text("Customer: $_customerName"),
+            Text("Assigned On: $date"),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: () { /* TODO: Implement Start Job Logic */ },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF63ADF2)),
+                  child: const Text("Start Job", style: TextStyle(color: Colors.white)),
                 ),
-              ),
-            ],
-          ),
-          Icon(
-            Icons.account_balance_wallet_outlined,
-            color: lightBlue,
-            size: 32,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildJobsList() {
-    final jobs = [
-      {'title': 'Job 1', 'date': 'Today, 4 PM'},
-      {'title': 'Job 2', 'date': 'Tomorrow, 10 AM'},
-    ];
-
-    return Column(
-      children: jobs
-          .map(
-            (job) => Container(
-              margin: EdgeInsets.only(bottom: 12),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 6,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        job['title']!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: darkBlue,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        job['date']!,
-                        style: TextStyle(fontSize: 14, color: grayBlue),
-                      ),
-                    ],
-                  ),
-                  Icon(Icons.arrow_forward_ios, color: grayBlue, size: 16),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _buildOtherContent() {
-    String pageName = _currentIndex == 1 ? 'Jobs' : 'Profile';
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _currentIndex == 1 ? Icons.work : Icons.person,
-            size: 80,
-            color: lightBlue,
-          ),
-          SizedBox(height: 20),
-          Text(
-            '$pageName Page',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
-            ),
-          ),
-          SizedBox(height: 12),
-          Text('Coming Soon!', style: TextStyle(fontSize: 16, color: grayBlue)),
-        ],
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

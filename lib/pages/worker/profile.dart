@@ -1,129 +1,185 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class WorkerProfile extends StatefulWidget {
-  const WorkerProfile({super.key});
+class WorkerProfilePage extends StatefulWidget {
+  const WorkerProfilePage({super.key});
+
   @override
-  WorkerProfileState createState() => WorkerProfileState();
+  _WorkerProfilePageState createState() => _WorkerProfilePageState();
 }
 
-class WorkerProfileState extends State<WorkerProfile> {
-  // Color scheme
+class _WorkerProfilePageState extends State<WorkerProfilePage> {
+  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
-  static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color paleBlue = Color(0xFFA7CCED);
+
+  Map<String, dynamic>? _workerData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWorkerData();
+  }
+
+  Future<void> _fetchWorkerData() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User not logged in");
+
+      final userDocFuture = FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final workerDocFuture = FirebaseFirestore.instance.collection('workers').doc(user.uid).get();
+
+      final results = await Future.wait([userDocFuture, workerDocFuture]);
+      final userDoc = results[0];
+      final workerDoc = results[1];
+
+      if (userDoc.exists && workerDoc.exists && mounted) {
+        setState(() {
+          _workerData = {
+            ...userDoc.data() as Map<String, dynamic>,
+            ...workerDoc.data() as Map<String, dynamic>,
+          };
+        });
+      }
+    } catch (e) {
+      print("Error fetching worker data: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/welcome', (route) => false);
+      }
+    } catch (e) {
+      print("Error logging out: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: darkBlue,
         elevation: 0,
-        title: Text(
-          'Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: lightBlue))
+          : _workerData == null
+              ? const Center(child: Text("Could not load profile data."))
+              : _buildProfileContent(),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    final name = _workerData?['name'] ?? 'No Name';
+    final email = _workerData?['email'] ?? 'No Email';
+    final profilePicUrl = _workerData?['profilePicUrl'] ?? '';
+    final services = List<String>.from(_workerData?['services'] ?? []);
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: paleBlue,
+            backgroundImage: profilePicUrl.isNotEmpty ? NetworkImage(profilePicUrl) : null,
+            child: profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(color: darkBlue, fontSize: 40)) : null,
+          ),
+          const SizedBox(height: 12),
+          Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue)),
+          Text(email, style: const TextStyle(fontSize: 14, color: grayBlue)),
+          const SizedBox(height: 30),
+          _buildInfoCard(),
+          const SizedBox(height: 20),
+          _buildServicesCard(services),
+          const SizedBox(height: 20),
+          _buildOptionTile(Icons.edit, 'Edit Profile', onTap: () {
+            Navigator.of(context).pushNamed('/worker/editprofile');
+          }),
+          _buildOptionTile(Icons.settings, 'Settings'),
+          _buildOptionTile(Icons.help_outline, 'Help & Support'),
+          _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _handleLogout),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _buildInfoRow(Icons.phone_outlined, _workerData?['contact'] ?? 'Not provided'),
+      ),
+    );
+  }
+
+  Widget _buildServicesCard(List<String> services) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Avatar & Name
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+            const Text("My Skills", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: darkBlue)),
+            const SizedBox(height: 12),
+            if (services.isEmpty)
+              const Text("No services listed.", style: TextStyle(color: grayBlue)),
+            if (services.isNotEmpty)
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: services.map((service) => Chip(
+                  label: Text(service),
+                  backgroundColor: lightBlue.withOpacity(0.1),
+                  labelStyle: const TextStyle(color: darkBlue),
+                  side: BorderSide.none,
+                )).toList(),
               ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'Worker Name',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: darkBlue,
-              ),
-            ),
-            Text(
-              'worker@email.com',
-              style: TextStyle(fontSize: 14, color: grayBlue),
-            ),
-            SizedBox(height: 20),
-
-            // Stats Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildStatCard('Jobs', '12'),
-                _buildStatCard('Rating', '4.8'),
-                _buildStatCard('Wallet', '₹500'),
-              ],
-            ),
-
-            SizedBox(height: 30),
-
-            // Options List
-            _buildOptionTile(Icons.edit, 'Edit Profile'),
-            _buildOptionTile(Icons.settings, 'Settings'),
-            _buildOptionTile(Icons.help_outline, 'Help & Support'),
-            _buildOptionTile(Icons.logout, 'Logout', isLogout: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatCard(String title, String value) {
-    return Container(
-      width: 100,
-      padding: EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(title, style: TextStyle(fontSize: 14, color: grayBlue)),
-        ],
-      ),
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: lightBlue, size: 20),
+        const SizedBox(width: 16),
+        Expanded(child: Text(text, style: const TextStyle(fontSize: 15, color: darkBlue))),
+      ],
     );
   }
 
-  Widget _buildOptionTile(
-    IconData icon,
-    String title, {
-    bool isLogout = false,
-  }) {
+  Widget _buildOptionTile(IconData icon, String title, {bool isLogout = false, VoidCallback? onTap}) {
+    final color = isLogout ? Colors.red : darkBlue;
     return ListTile(
-      leading: Icon(icon, color: isLogout ? Colors.red : darkBlue),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, color: isLogout ? Colors.red : darkBlue),
-      ),
-      trailing: Icon(Icons.arrow_forward_ios, color: grayBlue, size: 18),
-      onTap: () {
-        // Add navigation logic here
-      },
+      leading: Icon(icon, color: color),
+      title: Text(title, style: TextStyle(fontSize: 16, color: color)),
+      trailing: isLogout ? null : const Icon(Icons.arrow_forward_ios, color: grayBlue, size: 18),
+      onTap: onTap,
     );
   }
 }
