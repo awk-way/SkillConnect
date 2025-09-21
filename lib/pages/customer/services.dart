@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:skillconnect/pages/customer/ser_agents.dart';
 
-class Service {
+// Renamed to ServiceCategory for clarity and consistency
+class ServiceCategory {
   final String name;
   final String imageUrl;
 
-  Service(this.name, this.imageUrl);
+  ServiceCategory(this.name, this.imageUrl);
 }
 
 class SelectService extends StatefulWidget {
@@ -15,84 +17,83 @@ class SelectService extends StatefulWidget {
 }
 
 class _SelectServiceState extends State<SelectService> {
-  // Color scheme
+  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
 
   String? selectedService;
 
-  List<Service> services = [
+  // Using the new, expanded list of services provided
+  final List<ServiceCategory> services = [
     // Repairs
-    Service(
+    ServiceCategory(
       'Electrician',
       'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-multimeter-car-service-wanicon-flat-wanicon.png',
     ),
-    Service(
+    ServiceCategory(
       'Plumber',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
-    Service('Carpenter', 'https://img.icons8.com/fluency/2x/drill.png'),
-    Service(
+    ServiceCategory('Carpenter', 'https://img.icons8.com/fluency/2x/drill.png'),
+    ServiceCategory(
       'AC Repair',
       'https://img.icons8.com/?size=100&id=Jskg4-JWkjF4&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Washing Machine Repair',
       'https://img.icons8.com/?size=100&id=Jvd285hxXqK6&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Refrigerator Repair',
       'https://img.icons8.com/?size=100&id=56605&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'RO Water Purifier Repair',
       'https://img.icons8.com/?size=100&id=WPAThkXXlAN9&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Microwave Repair',
       'https://img.icons8.com/?size=100&id=66304&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Geyser Repair',
       'https://img.icons8.com/?size=100&id=65540&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Chimney & Hob Repair',
       'https://img.icons8.com/?size=100&id=zY1O74QugicA&format=png&color=000000',
     ),
-
     // Cleaning and Pest Control
-    Service(
+    ServiceCategory(
       'Home Deep Cleaning',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
-    Service(
+    ServiceCategory(
       'Pest Control',
       'https://img.icons8.com/?size=100&id=0iDzTSlNteTH&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Bathroom Cleaning',
       'https://img.icons8.com/external-flaticons-flat-flat-icons/2x/external-bathroom-cleaning-flaticons-flat-flat-icons.png',
     ),
-    Service(
+    ServiceCategory(
       'Kitchen Cleaning',
       'https://img.icons8.com/external-flaticons-flat-flat-icons/2x/external-kitchen-cleaning-flaticons-flat-flat-icons.png',
     ),
-    Service(
+    ServiceCategory(
       'Carpet Cleaning',
       'https://img.icons8.com/?size=100&id=s36AxpVEwPRt&format=png&color=000000',
     ),
-    Service(
+    ServiceCategory(
       'Car Cleaning',
       'https://img.icons8.com/?size=100&id=tmJ81kcHHY3d&format=png&color=000000',
     ),
-
     // Home Projects
-    Service(
+    ServiceCategory(
       'Home Painters',
       'https://img.icons8.com/external-itim2101-flat-itim2101/2x/external-painter-male-occupation-avatar-itim2101-flat-itim2101.png',
     ),
-    Service(
+    ServiceCategory(
       'Packers & Movers',
       'https://img.icons8.com/?size=100&id=R6SgTreFdP9v&format=png&color=000000',
     ),
@@ -106,10 +107,10 @@ class _SelectServiceState extends State<SelectService> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: darkBlue),
+          icon: const Icon(Icons.arrow_back, color: darkBlue),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Select Service',
           style: TextStyle(
             color: darkBlue,
@@ -119,12 +120,11 @@ class _SelectServiceState extends State<SelectService> {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
-            Text(
+            const Text(
               'Which service\ndo you need?',
               style: TextStyle(
                 fontSize: 26,
@@ -133,12 +133,10 @@ class _SelectServiceState extends State<SelectService> {
                 height: 1.2,
               ),
             ),
-            SizedBox(height: 32),
-
-            // Services Grid
+            const SizedBox(height: 32),
             Expanded(
               child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
@@ -165,25 +163,23 @@ class _SelectServiceState extends State<SelectService> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: Colors.black.withOpacity(0.08),
                             blurRadius: 8,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Service Icon/Image
-                          Container(
+                          SizedBox(
                             width: 80,
                             height: 80,
-                            padding: EdgeInsets.all(12),
                             child: Image.network(
                               service.imageUrl,
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) {
-                                return Icon(
+                                return const Icon(
                                   Icons.work,
                                   size: 40,
                                   color: lightBlue,
@@ -191,12 +187,10 @@ class _SelectServiceState extends State<SelectService> {
                               },
                             ),
                           ),
-                          SizedBox(height: 12),
-
-                          // Service Name
+                          const SizedBox(height: 12),
                           Text(
                             service.name,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: darkBlue,
@@ -210,19 +204,23 @@ class _SelectServiceState extends State<SelectService> {
                 },
               ),
             ),
-
-            // Continue Button
             if (selectedService != null) ...[
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // You can navigate to the next page here
+                    // Navigate to the next page with the selected service
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AvailableAgentsPage(selectedService: selectedService!),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: lightBlue,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -233,20 +231,20 @@ class _SelectServiceState extends State<SelectService> {
                     children: [
                       Text(
                         'Continue with $selectedService',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Container(
-                        padding: EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.arrow_forward,
                           color: Colors.white,
                           size: 18,
@@ -263,3 +261,4 @@ class _SelectServiceState extends State<SelectService> {
     );
   }
 }
+
