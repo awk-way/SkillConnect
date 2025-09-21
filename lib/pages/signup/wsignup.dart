@@ -2,34 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class WorkerSignUpScreen extends StatefulWidget {
-  const WorkerSignUpScreen({super.key});
+class AgentSignUpScreen extends StatefulWidget {
+  const AgentSignUpScreen({super.key});
 
   @override
-  WorkerSignUpScreenState createState() => WorkerSignUpScreenState();
+  AgentSignUpScreenState createState() => AgentSignUpScreenState();
 }
 
-class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
+class AgentSignUpScreenState extends State<AgentSignUpScreen> {
+  // --- Text Editing Controllers ---
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _orgNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  // --- Focus Nodes ---
+  final FocusNode _orgNameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _contactFocusNode = FocusNode();
   final FocusNode _addressFocusNode = FocusNode();
+  final FocusNode _cityFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmPasswordFocusNode = FocusNode();
 
+  // --- State Variables ---
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
-  // Available services
+  // --- Services Data ---
+  // A simple list of strings for available services.
   final List<String> _availableServices = [
     'Plumbing',
     'Electrical Work',
@@ -47,10 +55,10 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     'Auto Repair',
     'Other',
   ];
-
+  // This list will store the names of the selected services.
   final List<String> _selectedServices = [];
 
-  // SkillConnect Color Scheme
+  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -60,14 +68,19 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _orgNameController.dispose();
     _emailController.dispose();
     _contactController.dispose();
     _addressController.dispose();
+    _cityController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+
+    _orgNameFocusNode.dispose();
     _emailFocusNode.dispose();
     _contactFocusNode.dispose();
     _addressFocusNode.dispose();
+    _cityFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
@@ -80,45 +93,42 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text('Worker Signup', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Agent Signup', style: TextStyle(color: Colors.white)),
       ),
       body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 30),
+        margin: const EdgeInsets.symmetric(horizontal: 30),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                SizedBox(height: 20),
-
-                // Header
-                Icon(Icons.build, size: 60, color: lightBlue),
-                SizedBox(height: 20),
-
-                Text(
-                  'Create Worker Account',
+                const SizedBox(height: 20),
+                const Icon(Icons.business, size: 60, color: lightBlue),
+                const SizedBox(height: 20),
+                const Text(
+                  'Create Agent Account',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 10),
-                Text(
-                  'Offer your skills and earn money',
+                const SizedBox(height: 10),
+                const Text(
+                  'Manage workers and connect with customers',
                   style: TextStyle(color: paleBlue, fontSize: 16),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Full Name Field
+                // --- Input Fields ---
                 _buildInputField(
                   controller: _nameController,
-                  labelText: 'Full Name',
+                  labelText: 'Your Full Name',
                   icon: Icons.person_outline,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
+                  onFieldSubmitted: (_) => _orgNameFocusNode.requestFocus(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your full name';
@@ -126,8 +136,20 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Email Field
+                _buildInputField(
+                  controller: _orgNameController,
+                  focusNode: _orgNameFocusNode,
+                  labelText: 'Organization Name',
+                  icon: Icons.corporate_fare_outlined,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => _emailFocusNode.requestFocus(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your organization name';
+                    }
+                    return null;
+                  },
+                ),
                 _buildInputField(
                   controller: _emailController,
                   focusNode: _emailFocusNode,
@@ -140,16 +162,13 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
-
-                // Contact Field
                 _buildInputField(
                   controller: _contactController,
                   focusNode: _contactFocusNode,
@@ -168,18 +187,30 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Address Field
                 _buildInputField(
                   controller: _addressController,
                   focusNode: _addressFocusNode,
-                  labelText: 'Address',
+                  labelText: 'Full Address',
                   icon: Icons.location_on_outlined,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => _cityFocusNode.requestFocus(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your address';
+                    }
+                    return null;
+                  },
+                ),
+                 _buildInputField(
+                  controller: _cityController,
+                  focusNode: _cityFocusNode,
+                  labelText: 'City',
+                  icon: Icons.location_city_outlined,
                   textInputAction: TextInputAction.next,
                   onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your address';
+                      return 'Please enter your city';
                     }
                     return null;
                   },
@@ -188,7 +219,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                 // Services Selection
                 _buildServicesSelection(),
 
-                // Password Field
+                // Password Fields
                 _buildInputField(
                   controller: _passwordController,
                   focusNode: _passwordFocusNode,
@@ -205,11 +236,8 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                    onPressed: () => setState(
+                        () => _isPasswordVisible = !_isPasswordVisible),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -221,8 +249,6 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Confirm Password Field
                 _buildInputField(
                   controller: _confirmPasswordController,
                   focusNode: _confirmPasswordFocusNode,
@@ -236,11 +262,8 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    },
+                    onPressed: () => setState(() =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -253,14 +276,14 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                   },
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Sign Up Button
+                // --- Signup Button ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _performWorkerSignUp,
+                    onPressed: _isLoading ? null : _performAgentSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: lightBlue,
                       shape: RoundedRectangleBorder(
@@ -269,9 +292,9 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                       elevation: 3,
                     ),
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            'Create Worker Account',
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Create Agent Account',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -281,14 +304,11 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Back to user selection
                 GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
+                  onTap: () => Navigator.pop(context),
+                  child: const Text(
                     'Back to user selection',
                     style: TextStyle(
                       color: lightBlue,
@@ -297,8 +317,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     ),
                   ),
                 ),
-
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -307,6 +326,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     );
   }
 
+  // --- Reusable Input Field Widget ---
   Widget _buildInputField({
     required TextEditingController controller,
     FocusNode? focusNode,
@@ -320,26 +340,26 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     String? Function(String?)? validator,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: mediumBlue.withValues(alpha: 0.3),
+        color: mediumBlue.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
       child: TextFormField(
         controller: controller,
         focusNode: focusNode,
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: const TextStyle(color: Colors.white, fontSize: 16),
         keyboardType: keyboardType,
         textInputAction: textInputAction,
         obscureText: obscureText,
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           labelText: labelText,
-          labelStyle: TextStyle(color: paleBlue),
+          labelStyle: const TextStyle(color: paleBlue),
           prefixIcon: Icon(icon, color: lightBlue),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
@@ -348,19 +368,20 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     );
   }
 
+  // --- Services Selection Widget ---
   Widget _buildServicesSelection() {
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: mediumBlue.withValues(alpha: 0.3),
+        color: mediumBlue.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(Icons.work_outline, color: lightBlue),
               SizedBox(width: 10),
@@ -374,22 +395,18 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            'Select one or more services you provide:',
-            style: TextStyle(
-              color: paleBlue.withValues(alpha: 0.8),
-              fontSize: 14,
-            ),
+            'Select one or more services your organization provides:',
+            style: TextStyle(color: paleBlue.withOpacity(0.8), fontSize: 14),
           ),
-          SizedBox(height: 15),
-
-          // Services chips
+          const SizedBox(height: 15),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: _availableServices.map((service) {
-              bool isSelected = _selectedServices.contains(service);
+              final isSelected = _selectedServices.contains(service);
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
@@ -401,7 +418,7 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                   });
                 },
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? lightBlue : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
@@ -415,22 +432,20 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
                     style: TextStyle(
                       color: isSelected ? Colors.white : paleBlue,
                       fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.w500
-                          : FontWeight.normal,
+                      fontWeight:
+                          isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
               );
             }).toList(),
           ),
-
           if (_selectedServices.isEmpty)
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(top: 10),
               child: Text(
                 'Please select at least one service',
-                style: TextStyle(color: Colors.red, fontSize: 12),
+                style: TextStyle(color: Colors.redAccent, fontSize: 12),
               ),
             ),
         ],
@@ -438,95 +453,96 @@ class WorkerSignUpScreenState extends State<WorkerSignUpScreen> {
     );
   }
 
-  void _performWorkerSignUp() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedServices.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select at least one service'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  // --- Main Sign Up Logic ---
+  void _performAgentSignUp() async {
+    if (!_formKey.currentState!.validate() || _selectedServices.isEmpty) {
+       if (_selectedServices.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select at least one service.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // Create user in Firebase Auth
+      // 1. Create user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
       String uid = userCredential.user!.uid;
 
-      // Prepare services map
-      Map<String, dynamic> servicesMap = {};
-      for (int i = 0; i < _selectedServices.length; i++) {
-        servicesMap[i.toString()] = _selectedServices[i];
-      }
+      WriteBatch batch = FirebaseFirestore.instance.batch();
 
-      // Save worker data in Firestore
-      await FirebaseFirestore.instance
-          .collection('serviceProvider')
-          .doc(uid)
-          .set({
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'contact': _contactController.text.trim(),
-            'location': [0, 0], // Default coordinates, can be updated later
-            'address': _addressController.text.trim(),
-            'availability': true,
-            'profilepic': '',
-            'rating': {'0': '', '1': 1, '2': ''},
-            'service': servicesMap,
-            'userType': 'Worker',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+      DocumentReference userDocRef =
+          FirebaseFirestore.instance.collection('users').doc(uid);
+      batch.set(userDocRef, {
+        'uid': uid,
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'contact': _contactController.text.trim(),
+        'address': _addressController.text.trim(),
+        'city': _cityController.text.trim(),
+        'profilePicUrl': '', 
+        'userType': 'Agent',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      DocumentReference agentDocRef =
+          FirebaseFirestore.instance.collection('agents').doc(uid);
+      batch.set(agentDocRef, {
+        'orgName': _orgNameController.text.trim(),
+        'availability': true,
+        'rating': {
+          'average': 0, // Initial rating
+          'count': 0,
+        },
+        'services': _selectedServices,
+      });
+
+      await batch.commit();
 
       if (!mounted) return;
 
       Navigator.of(context).pushNamedAndRemoveUntil(
-        '/worker/home',
+        '/agent/home', 
         (Route<dynamic> route) => false,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Worker account created successfully!'),
+        const SnackBar(
+          content: Text('Agent account created successfully!'),
           backgroundColor: lightBlue,
         ),
       );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-
-      String message = 'Something went wrong';
+      String message = 'An error occurred. Please try again.';
       if (e.code == 'email-already-in-use') {
-        message = 'This email is already registered';
+        message = 'This email address is already registered.';
       } else if (e.code == 'weak-password') {
-        message = 'Password should be at least 6 characters';
+        message = 'The password provided is too weak.';
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
-      );
+      _showErrorSnackBar(message);
     } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      _showErrorSnackBar('An unexpected error occurred: $e');
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
+  }
+  
+  void _showErrorSnackBar(String message) {
+     if (!mounted) return;
+     ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+      );
   }
 }

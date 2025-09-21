@@ -10,26 +10,31 @@ class CustomerSignUpScreen extends StatefulWidget {
 }
 
 class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
+  // --- Text Editing Controllers ---
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  // --- Focus Nodes ---
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _contactFocusNode = FocusNode();
   final FocusNode _addressFocusNode = FocusNode();
+  final FocusNode _cityFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _confirmPasswordFocusNode = FocusNode();
 
+  // --- State Variables ---
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
-  // SkillConnect Color Scheme
+  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -42,11 +47,14 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     _emailController.dispose();
     _contactController.dispose();
     _addressController.dispose();
+    _cityController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+
     _emailFocusNode.dispose();
     _contactFocusNode.dispose();
     _addressFocusNode.dispose();
+    _cityFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
@@ -59,24 +67,22 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text('Customer Signup', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title:
+            const Text('Customer Signup', style: TextStyle(color: Colors.white)),
       ),
       body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 30),
+        margin: const EdgeInsets.symmetric(horizontal: 30),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                SizedBox(height: 20),
-
-                // Header
-                Icon(Icons.person_add, size: 60, color: lightBlue),
-                SizedBox(height: 20),
-
-                Text(
+                const SizedBox(height: 20),
+                const Icon(Icons.person_add_alt_1_outlined, size: 60, color: lightBlue),
+                const SizedBox(height: 20),
+                const Text(
                   'Create Customer Account',
                   style: TextStyle(
                     color: Colors.white,
@@ -84,14 +90,14 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 10),
-                Text(
+                const SizedBox(height: 10),
+                const Text(
                   'Find skilled workers for your tasks',
                   style: TextStyle(color: paleBlue, fontSize: 16),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Full Name Field
+                // --- Input Fields ---
                 _buildInputField(
                   controller: _nameController,
                   labelText: 'Full Name',
@@ -105,8 +111,6 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Email Field
                 _buildInputField(
                   controller: _emailController,
                   focusNode: _emailFocusNode,
@@ -119,16 +123,13 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
-
-                // Contact Field
                 _buildInputField(
                   controller: _contactController,
                   focusNode: _contactFocusNode,
@@ -147,15 +148,13 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Address Field
                 _buildInputField(
                   controller: _addressController,
                   focusNode: _addressFocusNode,
-                  labelText: 'Address',
+                  labelText: 'Full Address',
                   icon: Icons.location_on_outlined,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                  onFieldSubmitted: (_) => _cityFocusNode.requestFocus(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your address';
@@ -163,8 +162,22 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     return null;
                   },
                 ),
+                _buildInputField(
+                  controller: _cityController,
+                  focusNode: _cityFocusNode,
+                  labelText: 'City',
+                  icon: Icons.location_city_outlined,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your city';
+                    }
+                    return null;
+                  },
+                ),
 
-                // Password Field
+                // Password Fields
                 _buildInputField(
                   controller: _passwordController,
                   focusNode: _passwordFocusNode,
@@ -181,11 +194,8 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                    onPressed: () =>
+                        setState(() => _isPasswordVisible = !_isPasswordVisible),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -197,8 +207,6 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     return null;
                   },
                 ),
-
-                // Confirm Password Field
                 _buildInputField(
                   controller: _confirmPasswordController,
                   focusNode: _confirmPasswordFocusNode,
@@ -212,11 +220,8 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    },
+                    onPressed: () => setState(() =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -229,9 +234,9 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   },
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Sign Up Button
+                // --- Signup Button ---
                 SizedBox(
                   width: double.infinity,
                   height: 55,
@@ -245,8 +250,8 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                       elevation: 3,
                     ),
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
                             'Create Customer Account',
                             style: TextStyle(
                               color: Colors.white,
@@ -257,14 +262,11 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                // Back to user selection
                 GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
+                  onTap: () => Navigator.pop(context),
+                  child: const Text(
                     'Back to user selection',
                     style: TextStyle(
                       color: lightBlue,
@@ -273,8 +275,7 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     ),
                   ),
                 ),
-
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -283,6 +284,7 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     );
   }
 
+  // --- Reusable Input Field Widget ---
   Widget _buildInputField({
     required TextEditingController controller,
     FocusNode? focusNode,
@@ -296,26 +298,27 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     String? Function(String?)? validator,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: mediumBlue.withValues(alpha: 0.3),
+        color: mediumBlue.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
       child: TextFormField(
         controller: controller,
         focusNode: focusNode,
-        style: TextStyle(color: Colors.white, fontSize: 16),
+        style: const TextStyle(color: Colors.white, fontSize: 16),
         keyboardType: keyboardType,
         textInputAction: textInputAction,
         obscureText: obscureText,
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           labelText: labelText,
-          labelStyle: TextStyle(color: paleBlue),
+          labelStyle: const TextStyle(color: paleBlue),
           prefixIcon: Icon(icon, color: lightBlue),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
@@ -324,32 +327,31 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     );
   }
 
+  // --- Main Sign Up Logic ---
   void _performCustomerSignUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // Create user in Firebase Auth
+      // 1. Create user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
       String uid = userCredential.user!.uid;
 
-      // Save customer data in Firestore
+      // 2. Save customer data to 'users' collection according to the schema
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'uid': uid,
         'name': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'contact': _contactController.text.trim(),
-        'address': [0, 0, 0], // Default coordinates, can be updated later
-        'city': _addressController.text.trim(),
-        'jobsHistory': {'0': ''},
-        'profilePic': '',
+        'address': _addressController.text.trim(),
+        'city': _cityController.text.trim(),
+        'profilePicUrl': '', // Initially empty
         'userType': 'Customer',
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -362,36 +364,32 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Customer account created successfully!'),
           backgroundColor: lightBlue,
         ),
       );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-
-      String message = 'Something went wrong';
+      String message = 'An error occurred. Please try again.';
       if (e.code == 'email-already-in-use') {
-        message = 'This email is already registered';
+        message = 'This email address is already registered.';
       } else if (e.code == 'weak-password') {
-        message = 'Password should be at least 6 characters';
+        message = 'The password provided is too weak.';
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
-      );
+      _showErrorSnackBar(message);
     } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      _showErrorSnackBar('An unexpected error occurred: $e');
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+    );
   }
 }

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:skillconnect/pages/customer/jobs.dart';
+import 'package:skillconnect/pages/customer/notifications.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
+import 'package:skillconnect/pages/customer/ser_agents.dart';
 import 'package:skillconnect/pages/customer/services.dart';
 
 class Service {
@@ -16,23 +21,27 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class CustomerHomePageState extends State<CustomerHomePage> {
-  // Color scheme
+  // --- State Variables ---
+  String? _userName;
+  String? _userCity;
+  String? _userProfilePicUrl;
+  bool _isDataLoading = true;
+  int _currentIndex = 0;
+
+  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
-  static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
 
-  int _currentIndex = 0;
-
-  // Quick services for home page
-  List<Service> quickServices = [
+  // --- Quick Services Data ---
+  final List<Service> quickServices = [
     Service(
       'AC Repair',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
-      'Plumber',
+      'Plumbing',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
@@ -42,10 +51,56 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception("No user logged in");
+      }
+
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (userDoc.exists && mounted) {
+        setState(() {
+          _userName = userDoc.get('name');
+          _userCity = userDoc.get('city');
+          _userProfilePicUrl = userDoc.get('profilePicUrl');
+        });
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDataLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      _buildHomeContent(),
+      const JobsPage(), 
+      const CustomerProfile(), 
+    ];
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: _currentIndex == 0 ? _buildHomeContent() : _buildOtherContent(),
+      body: _isDataLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: lightBlue),
+            )
+          : pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -56,15 +111,15 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: lightBlue,
         unselectedItemColor: grayBlue,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
-        unselectedLabelStyle: TextStyle(
+        unselectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w500,
           fontSize: 12,
         ),
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
@@ -88,29 +143,31 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   Widget _buildHomeContent() {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Bar with User Info
             _buildTopBar(),
-            SizedBox(height: 32),
-
+            const SizedBox(height: 32),
             Text(
-              'What service do you need?',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+              'Hello, ${_userName ?? 'User'} 👋',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
                 color: darkBlue,
               ),
             ),
-            SizedBox(height: 20),
-
-            // Search Bar
+            const SizedBox(height: 8),
+            const Text(
+              'What service do you need today?',
+              style: TextStyle(
+                fontSize: 16,
+                color: grayBlue,
+              ),
+            ),
+            const SizedBox(height: 24),
             _buildSearchBar(),
-            SizedBox(height: 24),
-
-            // Quick Services Grid
+            const SizedBox(height: 24),
             _buildQuickServicesGrid(),
           ],
         ),
@@ -119,75 +176,108 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   }
 
   Widget _buildTopBar() {
+    String initial = _userName != null && _userName!.isNotEmpty ? _userName![0].toUpperCase() : 'U';
+
     return Row(
       children: [
-        // User Avatar
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: paleBlue),
-          child: ClipOval(
-            child: Image.network(
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Center(
-                  child: Text(
-                    'A',
-                    style: TextStyle(
-                      color: darkBlue,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+        CircleAvatar(
+          radius: 25,
+          backgroundColor: paleBlue,
+          backgroundImage: _userProfilePicUrl != null && _userProfilePicUrl!.isNotEmpty
+              ? NetworkImage(_userProfilePicUrl!)
+              : null,
+          child: (_userProfilePicUrl == null || _userProfilePicUrl!.isEmpty)
+              ? Text(
+                  initial,
+                  style: const TextStyle(
+                    color: darkBlue,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              },
-            ),
-          ),
+                )
+              : null,
         ),
-        SizedBox(width: 12),
-
-        // User Info
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'User Name',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: darkBlue,
-                ),
+              const Text(
+                'Location',
+                style: TextStyle(fontSize: 12, color: grayBlue),
               ),
               Row(
                 children: [
+                  const Icon(Icons.location_on, color: lightBlue, size: 16),
+                  const SizedBox(width: 4),
                   Text(
-                    'Quick Location',
-                    style: TextStyle(fontSize: 14, color: grayBlue),
+                    _userCity ?? 'Not set',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: darkBlue,
+                    ),
                   ),
-                  Icon(Icons.keyboard_arrow_down, color: grayBlue, size: 20),
                 ],
               ),
             ],
           ),
         ),
-
-        // Notification Icon
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+        // MODIFIED: Added StreamBuilder and Stack for notification badge
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('notifications')
+              .where('receiver_id', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+              .where('status', isEqualTo: 'unread') // Requires a composite index
+              .snapshots(),
+          builder: (context, snapshot) {
+            int unreadCount = 0;
+            if (snapshot.hasData) {
+              unreadCount = snapshot.data!.docs.length;
+            }
+            return Stack(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                  },
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+                  ),
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        '$unreadCount',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -195,29 +285,25 @@ class CustomerHomePageState extends State<CustomerHomePage> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Icon(Icons.search, color: grayBlue, size: 24),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Search for services',
-              style: TextStyle(fontSize: 16, color: grayBlue),
-            ),
-          ),
-        ],
+      child: const TextField(
+        decoration: InputDecoration(
+          hintText: 'Search for services...',
+          hintStyle: TextStyle(fontSize: 16, color: grayBlue),
+          prefixIcon: Icon(Icons.search, color: grayBlue, size: 24),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
       ),
     );
   }
@@ -229,42 +315,47 @@ class CustomerHomePageState extends State<CustomerHomePage> {
           child: GestureDetector(
             onTap: () {
               if (service.name == 'More') {
-                // Navigate to services page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SelectService()),
+                  MaterialPageRoute(builder: (context) => const SelectService()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AvailableAgentsPage(selectedService: service.name),
+                  ),
                 );
               }
             },
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 8),
-              padding: EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 8,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Service Icon/Image
                   Container(
                     width: 50,
                     height: 50,
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     child: service.name == 'More'
-                        ? Icon(Icons.arrow_forward, color: lightBlue, size: 28)
+                        ? const Icon(Icons.arrow_forward, color: lightBlue, size: 28)
                         : Image.network(
                             service.imageUrl,
                             fit: BoxFit.contain,
                             errorBuilder: (context, error, stackTrace) {
-                              return Icon(
+                              return const Icon(
                                 Icons.work,
                                 size: 28,
                                 color: lightBlue,
@@ -272,12 +363,10 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                             },
                           ),
                   ),
-                  SizedBox(height: 12),
-
-                  // Service Name
+                  const SizedBox(height: 12),
                   Text(
                     service.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: darkBlue,
@@ -291,36 +380,5 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         );
       }).toList(),
     );
-  }
-
-  Widget _buildOtherContent() {
-    if (_currentIndex == 1) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.work, size: 80, color: lightBlue),
-            SizedBox(height: 20),
-            Text(
-              'Jobs Page',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: darkBlue,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'Coming Soon!',
-              style: TextStyle(fontSize: 16, color: grayBlue),
-            ),
-          ],
-        ),
-      );
-    } else if (_currentIndex == 2) {
-      return CustomerProfile();
-    } else {
-      return CustomerHomePage();
-    }
   }
 }

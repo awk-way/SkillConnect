@@ -1,58 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:skillconnect/pages/agent/add_worker.dart'; 
 
-class WorkerProfilePage extends StatefulWidget {
-  const WorkerProfilePage({super.key});
+class AgentProfilePage extends StatefulWidget {
+  const AgentProfilePage({super.key});
 
   @override
-  _WorkerProfilePageState createState() => _WorkerProfilePageState();
+  _AgentProfilePageState createState() => _AgentProfilePageState();
 }
 
-class _WorkerProfilePageState extends State<WorkerProfilePage> {
+class _AgentProfilePageState extends State<AgentProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
   static const Color paleBlue = Color(0xFFA7CCED);
 
-  Map<String, dynamic>? _workerData;
+  Map<String, dynamic>? _agentData;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchWorkerData();
+    _fetchAgentData();
   }
 
-  Future<void> _fetchWorkerData() async {
+  Future<void> _fetchAgentData() async {
     setState(() => _isLoading = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception("User not logged in");
+      if (user == null) {
+        throw Exception("User not logged in");
+      }
 
       final userDocFuture = FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      final workerDocFuture = FirebaseFirestore.instance.collection('workers').doc(user.uid).get();
+      final agentDocFuture = FirebaseFirestore.instance.collection('agents').doc(user.uid).get();
 
-      final results = await Future.wait([userDocFuture, workerDocFuture]);
+      final List<DocumentSnapshot> results = await Future.wait([userDocFuture, agentDocFuture]);
+      
       final userDoc = results[0];
-      final workerDoc = results[1];
+      final agentDoc = results[1];
 
-      if (userDoc.exists && workerDoc.exists && mounted) {
+      if (userDoc.exists && agentDoc.exists && mounted) {
         setState(() {
-          _workerData = {
+          _agentData = {
             ...userDoc.data() as Map<String, dynamic>,
-            ...workerDoc.data() as Map<String, dynamic>,
+            ...agentDoc.data() as Map<String, dynamic>,
           };
         });
       }
     } catch (e) {
-      print("Error fetching worker data: $e");
+      print("Error fetching agent data: $e");
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-
+  
   Future<void> _handleLogout() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -77,17 +83,17 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: lightBlue))
-          : _workerData == null
+          : _agentData == null
               ? const Center(child: Text("Could not load profile data."))
               : _buildProfileContent(),
     );
   }
 
   Widget _buildProfileContent() {
-    final name = _workerData?['name'] ?? 'No Name';
-    final email = _workerData?['email'] ?? 'No Email';
-    final profilePicUrl = _workerData?['profilePicUrl'] ?? '';
-    final services = List<String>.from(_workerData?['services'] ?? []);
+    final name = _agentData?['name'] ?? 'No Name';
+    final email = _agentData?['email'] ?? 'No Email';
+    final profilePicUrl = _agentData?['profilePicUrl'] ?? '';
+    final services = List<String>.from(_agentData?['services'] ?? []);
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'A';
 
     return SingleChildScrollView(
@@ -105,16 +111,25 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
           Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue)),
           Text(email, style: const TextStyle(fontSize: 14, color: grayBlue)),
           const SizedBox(height: 30),
+
           _buildInfoCard(),
           const SizedBox(height: 20),
+          
           _buildServicesCard(services),
           const SizedBox(height: 20),
+          
+          _buildOptionTile(Icons.person_add_alt_1, 'Add Worker', onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddWorkerPage()),
+            );
+          }),
           _buildOptionTile(Icons.edit, 'Edit Profile', onTap: () {
-            Navigator.of(context).pushNamed('/worker/editprofile');
+            Navigator.pushNamed(context, '/agent/edit_profile').then((_) => _fetchAgentData());
           }),
           _buildOptionTile(Icons.settings, 'Settings'),
           _buildOptionTile(Icons.help_outline, 'Help & Support'),
-          _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _handleLogout),
+          _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _logout),
         ],
       ),
     );
@@ -127,11 +142,17 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: _buildInfoRow(Icons.phone_outlined, _workerData?['contact'] ?? 'Not provided'),
+        child: Column(
+          children: [
+            _buildInfoRow(Icons.phone_outlined, _agentData?['contact'] ?? 'Not provided'),
+            const Divider(height: 24),
+            _buildInfoRow(Icons.location_on_outlined, "${_agentData?['address']}, ${_agentData?['city']}" ),
+          ],
+        ),
       ),
     );
   }
-
+  
   Widget _buildServicesCard(List<String> services) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -142,7 +163,7 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("My Skills", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: darkBlue)),
+            const Text("Services Offered", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: darkBlue)),
             const SizedBox(height: 12),
             if (services.isEmpty)
               const Text("No services listed.", style: TextStyle(color: grayBlue)),
@@ -162,7 +183,7 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
       ),
     );
   }
-
+  
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
@@ -181,5 +202,20 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
       trailing: isLogout ? null : const Icon(Icons.arrow_forward_ios, color: grayBlue, size: 18),
       onTap: onTap,
     );
+  }
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/signup/login');
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error logging out: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }
