@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skillconnect/pages/customer/jobs.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
+import 'package:skillconnect/pages/customer/ser_agents.dart';
 import 'package:skillconnect/pages/customer/services.dart';
 
 class Service {
@@ -28,19 +29,18 @@ class CustomerHomePageState extends State<CustomerHomePage> {
 
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
-  static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
 
-  // --- Quick Services Data ---
+  // --- Quick Services Data (Updated for consistency) ---
   final List<Service> quickServices = [
     Service(
       'AC Repair',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
-      'Plumber',
+      'Plumbing', // Corrected from 'Plumber' to 'Plumbing'
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
@@ -75,7 +75,6 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         });
       }
     } catch (e) {
-      // Handle error, e.g., show a snackbar
       print("Error fetching user data: $e");
     } finally {
       if (mounted) {
@@ -208,7 +207,7 @@ class CustomerHomePageState extends State<CustomerHomePage> {
               ),
               Row(
                 children: [
-                  Icon(Icons.location_on, color: lightBlue, size: 16),
+                  const Icon(Icons.location_on, color: lightBlue, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     _userCity ?? 'Not set',
@@ -278,8 +277,14 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                   context,
                   MaterialPageRoute(builder: (context) => const SelectService()),
                 );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AvailableAgentsPage(selectedService: service.name),
+                  ),
+                );
               }
-              // Add navigation for other services too
             },
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -332,32 +337,6 @@ class CustomerHomePageState extends State<CustomerHomePage> {
           ),
         );
       }).toList(),
-    );
-  }
-
-  // Placeholder widget for the "Jobs" page
-  Widget _buildJobsPlaceholder() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.work_history_outlined, size: 80, color: lightBlue),
-          SizedBox(height: 20),
-          Text(
-            'My Jobs',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
-            ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            'You can track your job history here.',
-            style: TextStyle(fontSize: 16, color: grayBlue),
-          ),
-        ],
-      ),
     );
   }
 }

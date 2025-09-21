@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/agent/myjobs.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
 import 'package:skillconnect/pages/agent/workers.dart'; 
 
@@ -41,7 +42,7 @@ class _AgentHomePageState extends State<AgentHomePage> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const AgentDashboard(),
-      _buildPlaceholderPage('My Jobs', Icons.work_history_outlined),
+      const AgentJobsPage(),
       const MyWorkersPage(), 
       const AgentProfilePage(), 
     ];
