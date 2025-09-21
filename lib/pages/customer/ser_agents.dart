@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:skillconnect/pages/customer/sel_agent.dart';
 
-// --- Data Model for Agent ---
 class Agent {
   final String id;
   final String orgName;
   final String profilePicUrl;
-  final double rating; // Assuming a rating field
+  final double rating;
   
   Agent({required this.id, required this.orgName, required this.profilePicUrl, required this.rating});
 }
@@ -36,17 +37,13 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
 
   Future<List<Agent>> _fetchAvailableAgents() async {
     try {
-      // 1. Find agents that provide the selected service
       final agentQuery = await FirebaseFirestore.instance
           .collection('agents')
           .where('services', arrayContains: widget.selectedService)
           .get();
 
-      if (agentQuery.docs.isEmpty) {
-        return []; // No agents found for this service
-      }
+      if (agentQuery.docs.isEmpty) return [];
 
-      // 2. For each agent, fetch their corresponding user data (for name, pic etc.)
       List<Future<Agent?>> agentFutures = agentQuery.docs.map((agentDoc) async {
         final agentId = agentDoc.id;
         final agentData = agentDoc.data();
@@ -58,7 +55,6 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
             id: agentId,
             orgName: agentData['orgName'] ?? 'No Name',
             profilePicUrl: userData['profilePicUrl'] ?? '',
-            // Placeholder for rating, assuming it's in the agent doc
             rating: (agentData['rating']?['average'] ?? 0.0).toDouble(),
           );
         }
@@ -70,10 +66,56 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
 
     } catch (e) {
       print("Error fetching agents: $e");
-      // Re-throw the error to be caught by the FutureBuilder
       throw Exception("Failed to load agents. Please check your Firestore Rules and Indexes.");
     }
   }
+
+  Future<void> _sendJobRequest(String agentId, String agentName) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("You must be logged in to send a request.")));
+      return;
+    }
+
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Job Request'),
+        content: Text('Send a request to "$agentName" for "${widget.selectedService}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Send')),
+        ],
+      ),
+    ) ?? false;
+
+    if (!confirm) return;
+
+    // Show loading indicator
+    showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    
+    try {
+      await FirebaseFirestore.instance.collection('jobs').add({
+        'userId': currentUser.uid,
+        'agentId': agentId,
+        'title': widget.selectedService,
+        'status': 'Pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
+      Navigator.of(context).pop(); 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Request sent successfully!'), backgroundColor: Colors.green)
+      );
+
+    } catch (e) {
+      Navigator.of(context).pop(); 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send request: $e'), backgroundColor: Colors.red)
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,57 +154,62 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
 
   Widget _buildAgentCard(Agent agent) {
     final initial = agent.orgName.isNotEmpty ? agent.orgName[0].toUpperCase() : 'A';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 3,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: paleBlue,
-                  backgroundImage: agent.profilePicUrl.isNotEmpty ? NetworkImage(agent.profilePicUrl) : null,
-                  child: agent.profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(color: darkBlue, fontSize: 24)) : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(agent.orgName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue)),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: Colors.amber, size: 18),
-                          const SizedBox(width: 4),
-                          Text(agent.rating.toStringAsFixed(1), style: const TextStyle(color: grayBlue, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AgentDetailsPage(agentId: agent.id, selectedService: widget.selectedService),
+        ));
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        elevation: 3,
+        shadowColor: Colors.black.withOpacity(0.1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: paleBlue,
+                    backgroundImage: agent.profilePicUrl.isNotEmpty ? NetworkImage(agent.profilePicUrl) : null,
+                    child: agent.profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(color: darkBlue, fontSize: 24)) : null,
                   ),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement job request logic
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: lightBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('Send Request', style: TextStyle(color: Colors.white)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(agent.orgName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            Text(agent.rating.toStringAsFixed(1), style: const TextStyle(color: grayBlue, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            )
-          ],
+              const Divider(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _sendJobRequest(agent.id, agent.orgName),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: lightBlue,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Send Request', style: TextStyle(color: Colors.white)),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -175,15 +222,15 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
         children: [
           Icon(Icons.search_off, size: 80, color: grayBlue.withOpacity(0.5)),
           const SizedBox(height: 20),
-          Text(
+          const Text(
             'No Agents Found',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
           ),
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(
-              'We couldn\'t find any available agents for "${widget.selectedService}" in your area right now.',
+              'We couldn\'t find any available agents for "${widget.selectedService}" right now.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: grayBlue, fontSize: 16),
             ),
