@@ -369,9 +369,8 @@ class LoginScreenState extends State<LoginScreen> {
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         String userType = userData['userType'] ?? 'Customer';
 
-        // Navigate based on user type
-        if (userType == 'Worker') {
-          Navigator.pushReplacementNamed(context, '/worker/home');
+        if (userType == 'Agent') {
+          Navigator.pushReplacementNamed(context, '/agent/home');
         } else {
           Navigator.pushReplacementNamed(context, '/customer/home');
         }
