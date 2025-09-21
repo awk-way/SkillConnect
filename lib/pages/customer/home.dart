@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skillconnect/pages/customer/jobs.dart';
+import 'package:skillconnect/pages/customer/notifications.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
 import 'package:skillconnect/pages/customer/ser_agents.dart';
 import 'package:skillconnect/pages/customer/services.dart';
@@ -33,14 +34,14 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
 
-  // --- Quick Services Data (Updated for consistency) ---
+  // --- Quick Services Data ---
   final List<Service> quickServices = [
     Service(
       'AC Repair',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
-      'Plumbing', // Corrected from 'Plumber' to 'Plumbing'
+      'Plumbing',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     Service(
@@ -222,20 +223,61 @@ class CustomerHomePageState extends State<CustomerHomePage> {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+        // MODIFIED: Added StreamBuilder and Stack for notification badge
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('notifications')
+              .where('receiver_id', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+              .where('status', isEqualTo: 'unread') // Requires a composite index
+              .snapshots(),
+          builder: (context, snapshot) {
+            int unreadCount = 0;
+            if (snapshot.hasData) {
+              unreadCount = snapshot.data!.docs.length;
+            }
+            return Stack(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                  },
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+                  ),
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        '$unreadCount',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
