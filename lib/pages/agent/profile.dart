@@ -129,7 +129,7 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
           }),
           _buildOptionTile(Icons.settings, 'Settings'),
           _buildOptionTile(Icons.help_outline, 'Help & Support'),
-          _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _handleLogout),
+          _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _logout),
         ],
       ),
     );
@@ -202,5 +202,20 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
       trailing: isLogout ? null : const Icon(Icons.arrow_forward_ios, color: grayBlue, size: 18),
       onTap: onTap,
     );
+  }
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/signup/login');
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error logging out: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart'; // Add this dependency for date formatting
+import 'package:intl/intl.dart';
 
-// Note: You will need to add this to your pubspec.yaml:
-// intl: ^0.18.1
-
-// --- Data Model for a Job ---
 class Job {
   final String id;
   final String title;
@@ -46,7 +42,6 @@ class _JobsPageState extends State<JobsPage> {
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
-  static const Color mediumBlue = Color(0xFF545E75);
 
   final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -58,13 +53,13 @@ class _JobsPageState extends State<JobsPage> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('My Jobs', style: TextStyle(color: Colors.white)),
+          title: const Text('My Jobs', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           backgroundColor: darkBlue,
           elevation: 0,
           bottom: const TabBar(
             indicatorColor: lightBlue,
             labelColor: Colors.white,
-            unselectedLabelColor: grayBlue,
+            unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: 'Ongoing'),
               Tab(text: 'Past'),
@@ -82,29 +77,19 @@ class _JobsPageState extends State<JobsPage> {
               return const Center(child: CircularProgressIndicator(color: lightBlue));
             }
             if (snapshot.hasError) {
-              // Show the Firestore error message directly in the UI
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Error: ${snapshot.error}\n\nPlease ensure you have created the required Firestore index.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              );
+              return _buildIndexErrorState();
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return _buildEmptyState();
+              return _buildEmptyState("You haven't requested any jobs yet.");
             }
 
             final jobs = snapshot.data!.docs.map((doc) => Job.fromFirestore(doc)).toList();
 
             final ongoingJobs = jobs.where((job) =>
-                job.status.toLowerCase() != 'completed' && job.status.toLowerCase() != 'canceled').toList();
+                job.status.toLowerCase() != 'completed' && job.status.toLowerCase() != 'cancelled').toList();
             
             final pastJobs = jobs.where((job) =>
-                job.status.toLowerCase() == 'completed' || job.status.toLowerCase() == 'canceled').toList();
+                job.status.toLowerCase() == 'completed' || job.status.toLowerCase() == 'cancelled').toList();
 
             return TabBarView(
               children: [
@@ -133,30 +118,50 @@ class _JobsPageState extends State<JobsPage> {
     );
   }
   
-  Widget _buildEmptyState() {
-    return const Center(
+  Widget _buildEmptyState(String message) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.work_history_outlined, size: 80, color: lightBlue),
-          SizedBox(height: 20),
+          Icon(Icons.work_history_outlined, size: 80, color: grayBlue.withOpacity(0.5)),
+          const SizedBox(height: 20),
           Text(
-            'No Jobs Yet',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: darkBlue),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Your requested services will appear here.',
+            message,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: grayBlue),
+            style: const TextStyle(color: grayBlue, fontSize: 16),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildIndexErrorState() {
+     return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 80, color: Colors.orangeAccent),
+            SizedBox(height: 20),
+            Text(
+              'Database Index Required',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+            ),
+            SizedBox(height: 12),
+            Text(
+              "To see your jobs, a Firestore index is needed. Please check your debug console for a URL to create it, or create it manually.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: grayBlue, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// --- Reusable Job Card Widget (now StatefulWidget) ---
 class JobCard extends StatefulWidget {
   final Job job;
   const JobCard({super.key, required this.job});
@@ -167,6 +172,8 @@ class JobCard extends StatefulWidget {
 
 class _JobCardState extends State<JobCard> {
   String? _agentName;
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color grayBlue = Color(0xFF82A0BC);
 
   @override
   void initState() {
@@ -176,35 +183,28 @@ class _JobCardState extends State<JobCard> {
 
   Future<void> _fetchAgentName() async {
     if (widget.job.agentId == null || widget.job.agentId!.isEmpty) {
-      setState(() {
-        _agentName = 'Not assigned';
-      });
+      setState(() => _agentName = 'Not assigned yet');
       return;
     }
     try {
       final doc = await FirebaseFirestore.instance.collection('agents').doc(widget.job.agentId).get();
       if (doc.exists && mounted) {
         setState(() {
-          _agentName = doc.data()?['organisationName'] ?? 'Unknown Agent';
+          _agentName = doc.data()?['orgName'] ?? 'Unknown Agent';
         });
       }
     } catch (e) {
-       if (mounted) {
-         setState(() {
-           _agentName = 'Error fetching agent';
-         });
-       }
+       if (mounted) setState(() => _agentName = 'Error fetching agent');
     }
   }
 
-  // Helper to get status color
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': return Colors.orangeAccent;
-      case 'accepted': return Colors.blueAccent;
-      case 'in progress': return Colors.lightBlue;
+      case 'pending': return Colors.orange;
+      case 'accepted': return Colors.blue;
+      case 'inprogress': return Colors.lightBlue;
       case 'completed': return Colors.green;
-      case 'canceled': return Colors.redAccent;
+      case 'cancelled': return Colors.red;
       default: return Colors.grey;
     }
   }
@@ -214,7 +214,6 @@ class _JobCardState extends State<JobCard> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -227,30 +226,22 @@ class _JobCardState extends State<JobCard> {
                 Expanded(
                   child: Text(
                     widget.job.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _JobsPageState.darkBlue),
-                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(widget.job.status).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    widget.job.status,
-                    style: TextStyle(color: _getStatusColor(widget.job.status), fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
+                Chip(
+                  label: Text(widget.job.status),
+                  backgroundColor: _getStatusColor(widget.job.status).withOpacity(0.1),
+                  labelStyle: TextStyle(color: _getStatusColor(widget.job.status), fontWeight: FontWeight.bold, fontSize: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ],
             ),
+            const Divider(height: 24),
+            _buildInfoRow(Icons.calendar_today_outlined, DateFormat('d MMM yyyy').format(widget.job.createdAt.toDate())),
             const SizedBox(height: 8),
-            const Divider(),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today_outlined, DateFormat('MMMM d, yyyy').format(widget.job.createdAt.toDate())),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.person_outline, _agentName ?? 'Loading agent...'),
+            _buildInfoRow(Icons.person_outline, _agentName ?? 'Loading...'),
           ],
         ),
       ),
@@ -260,9 +251,9 @@ class _JobCardState extends State<JobCard> {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: _JobsPageState.grayBlue),
+        Icon(icon, size: 16, color: grayBlue),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 14, color: _JobsPageState.mediumBlue)),
+        Text(text, style: const TextStyle(fontSize: 14, color: grayBlue)),
       ],
     );
   }
