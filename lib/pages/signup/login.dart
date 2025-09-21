@@ -369,11 +369,12 @@ class LoginScreenState extends State<LoginScreen> {
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         String userType = userData['userType'] ?? 'Customer';
 
-        // Navigate based on user type
-        if (userType == 'Worker') {
-          Navigator.pushReplacementNamed(context, '/worker/home');
-        } else {
+        if (userType == 'Agent') {
+          Navigator.pushReplacementNamed(context, '/agent/home');
+        } else if (userType == 'Customer') {
           Navigator.pushReplacementNamed(context, '/customer/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/worker/home');
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
