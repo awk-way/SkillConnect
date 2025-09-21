@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:skillconnect/pages/agent/edit_profile.dart';
+import 'package:skillconnect/pages/agent/home.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
+import 'package:skillconnect/pages/agent/home.dart';
 import 'package:skillconnect/pages/worker/home.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 import 'firebase_options.dart';
@@ -39,13 +42,14 @@ class SkillConnectApp extends StatelessWidget {
         '/signup/login': (context) => LoginScreen(),
         '/signup/signup': (context) => UserTypeSelectionScreen(),
         '/signup/csignup': (context) => CustomerSignUpScreen(),
-        '/signup/wsignup': (context) => WorkerSignUpScreen(),
+        '/signup/wsignup': (context) => AgentSignUpScreen(),
         '/customer/home': (context) => CustomerHomePage(),
         '/customer/services': (context) => SelectService(),
         '/customer/profile': (context) => CustomerProfile(),
+        '/agent/home': (context) => AgentHomePage(),
+        '/agent/profile': (context) => WorkerProfile(),
+        '/agent/edit_profile': (context) => AgentEditProfilePage(),
         '/worker/home': (context) => WorkerHomePage(),
-        '/worker/profile': (context) => WorkerProfile(),
-        //'/job-posting': (context) => JobPostingPage(),
         //'/worker-profile': (context) => WorkerProfilePage(),
         //'/chat': (context) => ChatPage(),
         //'/job-tracking': (context) => JobTrackingPage(),
