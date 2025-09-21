@@ -479,10 +479,8 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
 
       String uid = userCredential.user!.uid;
 
-      // 2. Use a WriteBatch to create documents in both 'users' and 'agents' collections atomically
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
-      // --- Document 1: Create user profile in 'users' collection ---
       DocumentReference userDocRef =
           FirebaseFirestore.instance.collection('users').doc(uid);
       batch.set(userDocRef, {
@@ -492,12 +490,11 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
         'contact': _contactController.text.trim(),
         'address': _addressController.text.trim(),
         'city': _cityController.text.trim(),
-        'profilePicUrl': '', // Initially empty
+        'profilePicUrl': '', 
         'userType': 'Agent',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // --- Document 2: Create agent profile in 'agents' collection ---
       DocumentReference agentDocRef =
           FirebaseFirestore.instance.collection('agents').doc(uid);
       batch.set(agentDocRef, {
@@ -507,10 +504,9 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
           'average': 0, // Initial rating
           'count': 0,
         },
-        'services': _selectedServices, // Store array of service names
+        'services': _selectedServices,
       });
 
-      // 3. Commit the batch
       await batch.commit();
 
       if (!mounted) return;
