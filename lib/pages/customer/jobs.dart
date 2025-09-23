@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/customer/chat.dart';
 
 class Job {
   final String id;
@@ -9,6 +10,7 @@ class Job {
   final String status;
   final Timestamp createdAt;
   final String? agentId;
+  final String? workerId;
 
   Job({
     required this.id,
@@ -16,6 +18,7 @@ class Job {
     required this.status,
     required this.createdAt,
     this.agentId,
+    this.workerId,
   });
 
   factory Job.fromFirestore(DocumentSnapshot doc) {
@@ -26,6 +29,7 @@ class Job {
       status: data['status'] ?? 'Unknown',
       createdAt: data['createdAt'] ?? Timestamp.now(),
       agentId: data['agentId'],
+      workerId: data['workerId'],
     );
   }
 }
@@ -48,7 +52,7 @@ class _JobsPageState extends State<JobsPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2, // Two tabs: Ongoing and Past
+      length: 2,
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
@@ -172,31 +176,53 @@ class JobCard extends StatefulWidget {
 
 class _JobCardState extends State<JobCard> {
   String? _agentName;
+  String? _workerName;
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color lightBlue = Color(0xFF63ADF2);
 
   @override
   void initState() {
     super.initState();
-    _fetchAgentName();
+    _fetchNames();
   }
 
-  Future<void> _fetchAgentName() async {
-    if (widget.job.agentId == null || widget.job.agentId!.isEmpty) {
-      setState(() => _agentName = 'Not assigned yet');
-      return;
-    }
-    try {
+  Future<void> _fetchNames() async {
+    if (widget.job.agentId != null && widget.job.agentId!.isNotEmpty) {
       final doc = await FirebaseFirestore.instance.collection('agents').doc(widget.job.agentId).get();
       if (doc.exists && mounted) {
-        setState(() {
-          _agentName = doc.data()?['orgName'] ?? 'Unknown Agent';
-        });
+        setState(() => _agentName = doc.data()?['orgName'] ?? 'Agent');
       }
-    } catch (e) {
-       if (mounted) setState(() => _agentName = 'Error fetching agent');
+    } else {
+       _agentName = 'Not assigned';
+    }
+
+    if (widget.job.workerId != null && widget.job.workerId!.isNotEmpty) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(widget.job.workerId).get();
+       if (doc.exists && mounted) {
+        setState(() => _workerName = doc.data()?['name'] ?? 'Worker');
+      }
     }
   }
+  
+  Future<void> _navigateToChat() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (widget.job.workerId == null || currentUser == null || _workerName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cannot start chat.")));
+      return;
+    }
+    
+    final chatDocRef = FirebaseFirestore.instance.collection('chats').doc(widget.job.id);
+    await chatDocRef.set({
+      'jobId': widget.job.id,
+      'participants': [currentUser.uid, widget.job.workerId],
+    }, SetOptions(merge: true));
+
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context) => ChatPage(jobId: widget.job.id, otherUserName: _workerName!),
+    ));
+  }
+
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -204,13 +230,18 @@ class _JobCardState extends State<JobCard> {
       case 'accepted': return Colors.blue;
       case 'inprogress': return Colors.lightBlue;
       case 'completed': return Colors.green;
-      case 'cancelled': return Colors.red;
+      case 'cancelled':
+      case 'declined':
+        return Colors.red;
       default: return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // MODIFIED: Chat is now available for 'Accepted' and 'InProgress' statuses
+    final canChat = ['accepted', 'inprogress'].contains(widget.job.status.toLowerCase());
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -242,6 +273,21 @@ class _JobCardState extends State<JobCard> {
             _buildInfoRow(Icons.calendar_today_outlined, DateFormat('d MMM yyyy').format(widget.job.createdAt.toDate())),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.person_outline, _agentName ?? 'Loading...'),
+            if (canChat) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToChat,
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: const Text('Chat with Worker'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: lightBlue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              )
+            ]
           ],
         ),
       ),
@@ -258,3 +304,4 @@ class _JobCardState extends State<JobCard> {
     );
   }
 }
+
