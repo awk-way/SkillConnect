@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:skillconnect/pages/agent/myjobs.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
-import 'package:skillconnect/pages/agent/workers.dart'; 
+import 'package:skillconnect/pages/agent/workers.dart';
 
 class Agent {
   final String organisationName;
@@ -17,7 +17,7 @@ class Job {
   final String title;
   final String status;
   final Timestamp createdAt;
-  final String customerName; 
+  final String customerName;
 
   Job({
     required this.id,
@@ -43,8 +43,8 @@ class _AgentHomePageState extends State<AgentHomePage> {
     final List<Widget> pages = [
       const AgentDashboard(),
       const AgentJobsPage(),
-      const MyWorkersPage(), 
-      const AgentProfilePage(), 
+      const MyWorkersPage(),
+      const AgentProfilePage(),
     ];
 
     return Scaffold(
@@ -56,10 +56,26 @@ class _AgentHomePageState extends State<AgentHomePage> {
         selectedItemColor: const Color(0xFF63ADF2), // lightBlue
         unselectedItemColor: const Color(0xFF82A0BC), // grayBlue
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.work_history_outlined), activeIcon: Icon(Icons.work_history), label: 'Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt_outlined), activeIcon: Icon(Icons.people_alt), label: 'Workers'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work_history_outlined),
+            activeIcon: Icon(Icons.work_history),
+            label: 'Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_alt_outlined),
+            activeIcon: Icon(Icons.people_alt),
+            label: 'Workers',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -78,8 +94,14 @@ class _AgentHomePageState extends State<AgentHomePage> {
           children: [
             Icon(icon, size: 80, color: const Color(0xFF63ADF2)),
             const SizedBox(height: 20),
-            Text('$title Page', style: const TextStyle(fontSize: 24, color: Color(0xFF304D6D))),
-            const Text('Coming Soon!', style: TextStyle(color: Color(0xFF82A0BC))),
+            Text(
+              '$title Page',
+              style: const TextStyle(fontSize: 24, color: Color(0xFF304D6D)),
+            ),
+            const Text(
+              'Coming Soon!',
+              style: TextStyle(color: Color(0xFF82A0BC)),
+            ),
           ],
         ),
       ),
@@ -100,14 +122,20 @@ class _AgentDashboardState extends State<AgentDashboard> {
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color paleBlue = Color(0xFFA7CCED);
-  
+
   final String? agentId = FirebaseAuth.instance.currentUser?.uid;
 
   Future<Agent?> _fetchAgentData() async {
     if (agentId == null) return null;
     try {
-      DocumentSnapshot agentDoc = await FirebaseFirestore.instance.collection('agents').doc(agentId).get();
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(agentId).get();
+      DocumentSnapshot agentDoc = await FirebaseFirestore.instance
+          .collection('agents')
+          .doc(agentId)
+          .get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(agentId)
+          .get();
 
       if (agentDoc.exists && userDoc.exists) {
         return Agent(
@@ -115,9 +143,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
           profilePicUrl: userDoc.get('profilePicUrl') ?? '',
         );
       }
-    } catch (e) {
-      print('Error fetching agent data: $e');
-    }
+    } catch (e) {}
     return null;
   }
 
@@ -133,17 +159,30 @@ class _AgentDashboardState extends State<AgentDashboard> {
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const SizedBox.shrink();
             final agent = snapshot.data!;
-            final initial = agent.organisationName.isNotEmpty ? agent.organisationName[0].toUpperCase() : 'A';
+            final initial = agent.organisationName.isNotEmpty
+                ? agent.organisationName[0].toUpperCase()
+                : 'A';
             return Row(
               children: [
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: paleBlue,
-                  backgroundImage: agent.profilePicUrl.isNotEmpty ? NetworkImage(agent.profilePicUrl) : null,
-                  child: agent.profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(color: darkBlue)) : null,
+                  backgroundImage: agent.profilePicUrl.isNotEmpty
+                      ? NetworkImage(agent.profilePicUrl)
+                      : null,
+                  child: agent.profilePicUrl.isEmpty
+                      ? Text(initial, style: const TextStyle(color: darkBlue))
+                      : null,
                 ),
                 const SizedBox(width: 12),
-                Text(agent.organisationName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  agent.organisationName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             );
           },
@@ -152,7 +191,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},
-          )
+          ),
         ],
       ),
       body: ListView(
@@ -168,25 +207,45 @@ class _AgentDashboardState extends State<AgentDashboard> {
 
   Widget _buildStatsSection() {
     return StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('jobs').where('agentId', isEqualTo: agentId).snapshots(),
-        builder: (context, snapshot) {
-          int totalJobs = 0;
-          if (snapshot.hasData) {
-            totalJobs = snapshot.data!.docs.length;
-          }
-          return Row(
-            children: [
-              Expanded(child: _buildStatCard('Total Jobs', '$totalJobs', Icons.work_history, Colors.orange)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Workers', '5', Icons.people, Colors.green)), // Placeholder
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Rating', '4.5', Icons.star, Colors.blue)), // Placeholder
-            ],
-          );
-        });
+      stream: FirebaseFirestore.instance
+          .collection('jobs')
+          .where('agentId', isEqualTo: agentId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        int totalJobs = 0;
+        if (snapshot.hasData) {
+          totalJobs = snapshot.data!.docs.length;
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Total Jobs',
+                '$totalJobs',
+                Icons.work_history,
+                Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard('Workers', '5', Icons.people, Colors.green),
+            ), // Placeholder
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard('Rating', '4.5', Icons.star, Colors.blue),
+            ), // Placeholder
+          ],
+        );
+      },
+    );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -198,8 +257,15 @@ class _AgentDashboardState extends State<AgentDashboard> {
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          Text(title, style: TextStyle(color: color.withOpacity(0.8))),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(title, style: TextStyle(color: color.withValues(alpha: 0.8))),
         ],
       ),
     );
@@ -211,7 +277,11 @@ class _AgentDashboardState extends State<AgentDashboard> {
       children: [
         const Text(
           "New Job Requests",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: darkBlue),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: darkBlue,
+          ),
         ),
         const SizedBox(height: 16),
         StreamBuilder<QuerySnapshot>(
@@ -222,19 +292,27 @@ class _AgentDashboardState extends State<AgentDashboard> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: lightBlue));
+              return const Center(
+                child: CircularProgressIndicator(color: lightBlue),
+              );
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Text("No new job requests at the moment.", style: TextStyle(color: Colors.grey));
+              return const Text(
+                "No new job requests at the moment.",
+                style: TextStyle(color: Colors.grey),
+              );
             }
-            
+
             return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final doc = snapshot.data!.docs[index];
-                return NewJobCard(jobData: doc.data() as Map<String, dynamic>, docId: doc.id);
+                return NewJobCard(
+                  jobData: doc.data() as Map<String, dynamic>,
+                  docId: doc.id,
+                );
               },
             );
           },
@@ -269,12 +347,15 @@ class _NewJobCardState extends State<NewJobCard> {
         setState(() => _customerName = 'Unknown Customer');
         return;
       }
-      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      if(doc.exists && mounted) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (doc.exists && mounted) {
         setState(() => _customerName = doc.data()?['name'] ?? 'Customer');
       }
-    } catch(e) {
-      if(mounted) setState(() => _customerName = 'Error');
+    } catch (e) {
+      if (mounted) setState(() => _customerName = 'Error');
     }
   }
 
@@ -282,7 +363,9 @@ class _NewJobCardState extends State<NewJobCard> {
   Widget build(BuildContext context) {
     final title = widget.jobData['title'] ?? 'No Title';
     final timestamp = widget.jobData['createdAt'] as Timestamp?;
-    final date = timestamp != null ? DateFormat('d MMM, h:mm a').format(timestamp.toDate()) : 'No date';
+    final date = timestamp != null
+        ? DateFormat('d MMM, h:mm a').format(timestamp.toDate())
+        : 'No date';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -293,23 +376,40 @@ class _NewJobCardState extends State<NewJobCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            Text("From: $_customerName", style: const TextStyle(color: Colors.grey)),
+            Text(
+              "From: $_customerName",
+              style: const TextStyle(color: Colors.grey),
+            ),
             Text("On: $date"),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(onPressed: () {}, child: const Text("Decline", style: TextStyle(color: Colors.red))),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text(
+                    "Decline",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF63ADF2)),
-                  child: const Text("Accept", style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF63ADF2),
+                  ),
+                  child: const Text(
+                    "Accept",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
