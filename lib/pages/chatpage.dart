@@ -20,7 +20,6 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-
   late String chatId;
 
   @override
@@ -37,11 +36,15 @@ class _ChatPageState extends State<ChatPage> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null) return;
 
-    await FirebaseFirestore.instance
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add({
+    final chatDocRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+    final messageCollectionRef = chatDocRef.collection('messages');
+
+    await chatDocRef.set({
+      'participants': [widget.userId, widget.workerId],
+      'lastMessage': text,
+      'lastMessageTimestamp': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)); 
+    await messageCollectionRef.add({
       'senderId': currentUserId,
       'text': text,
       'timestamp': FieldValue.serverTimestamp(),
@@ -60,7 +63,6 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          // Messages List
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -71,7 +73,7 @@ class _ChatPageState extends State<ChatPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                    return const SizedBox.shrink();
                 }
 
                 final docs = snapshot.data!.docs;
