@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'package:skillconnect/pages/customer/chat.dart';
+import 'package:skillconnect/pages/chatpage.dart';
 
 class Job {
   final String id;
@@ -205,23 +205,28 @@ class _JobCardState extends State<JobCard> {
     }
   }
   
-  Future<void> _navigateToChat() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (widget.job.workerId == null || currentUser == null || _workerName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cannot start chat.")));
-      return;
-    }
-    
-    final chatDocRef = FirebaseFirestore.instance.collection('chats').doc(widget.job.id);
-    await chatDocRef.set({
-      'jobId': widget.job.id,
-      'participants': [currentUser.uid, widget.job.workerId],
-    }, SetOptions(merge: true));
+void _navigateToChat() {
+  final currentUser = FirebaseAuth.instance.currentUser;
 
-    Navigator.push(context, MaterialPageRoute(
-      builder: (context) => ChatPage(jobId: widget.job.id, otherUserName: _workerName!),
-    ));
+  if (widget.job.workerId == null || _workerName == null || currentUser == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Worker information not available for chat.")),
+    );
+    return;
   }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ChatPage(
+        workerId: widget.job.workerId!,
+        userId: currentUser.uid,
+        customerName: _workerName!,
+      ),
+    ),
+  );
+}
+
 
 
   Color _getStatusColor(String status) {

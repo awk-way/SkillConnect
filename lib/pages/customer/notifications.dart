@@ -63,7 +63,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
   
-  // --- ADDED: Method to mark notification as read ---
   Future<void> _markAsRead(String notificationId) async {
     try {
       await FirebaseFirestore.instance
