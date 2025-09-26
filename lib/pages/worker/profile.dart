@@ -57,7 +57,7 @@ class _WorkerProfilePageState extends State<WorkerProfilePage> {
     try {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/welcome', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } catch (e) {
       print("Error logging out: $e");

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/chatpage.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 
 class WorkerHomePage extends StatefulWidget {
@@ -13,8 +14,7 @@ class WorkerHomePage extends StatefulWidget {
 
 class _WorkerHomePageState extends State<WorkerHomePage> {
   int _currentIndex = 0;
-  
-  // --- UI Color Scheme ---
+
   static const Color darkBlue = Color(0xFF304D6D);
 
   @override
@@ -31,18 +31,29 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF63ADF2), 
-        unselectedItemColor: const Color(0xFF82A0BC), 
+        selectedItemColor: const Color(0xFF63ADF2),
+        unselectedItemColor: const Color(0xFF82A0BC),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.work_history_outlined), activeIcon: Icon(Icons.work_history), label: 'Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work_history_outlined),
+            activeIcon: Icon(Icons.work_history),
+            label: 'Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
   }
 
-  // Placeholder for other pages
   Widget _buildPlaceholderPage(String title, IconData icon) {
     return Scaffold(
       appBar: AppBar(
@@ -56,8 +67,14 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
           children: [
             Icon(icon, size: 80, color: const Color(0xFF63ADF2)),
             const SizedBox(height: 20),
-            Text('$title Page', style: const TextStyle(fontSize: 24, color: darkBlue)),
-            const Text('Coming Soon!', style: TextStyle(color: Color(0xFF82A0BC))),
+            Text(
+              '$title Page',
+              style: const TextStyle(fontSize: 24, color: darkBlue),
+            ),
+            const Text(
+              'Coming Soon!',
+              style: TextStyle(color: Color(0xFF82A0BC)),
+            ),
           ],
         ),
       ),
@@ -65,7 +82,6 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
   }
 }
 
-// --- Dashboard Screen ---
 class WorkerDashboard extends StatefulWidget {
   const WorkerDashboard({super.key});
 
@@ -78,7 +94,7 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
-  
+
   final String? workerId = FirebaseAuth.instance.currentUser?.uid;
 
   @override
@@ -106,15 +122,29 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
 
   Widget _buildWelcomeSection() {
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(workerId).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(workerId)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Text("Loading...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue));
+          return const Text(
+            "Loading...",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: darkBlue,
+            ),
+          );
         }
         final userName = snapshot.data?.get('name') ?? 'Worker';
         return Text(
           'Hello, $userName 👋',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: darkBlue),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: darkBlue,
+          ),
         );
       },
     );
@@ -127,7 +157,10 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('workers').doc(workerId).snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('workers')
+              .doc(workerId)
+              .snapshots(),
           builder: (context, snapshot) {
             bool isAvailable = false;
             if (snapshot.hasData) {
@@ -136,7 +169,10 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Are you available for new jobs?", style: TextStyle(fontSize: 16, color: darkBlue)),
+                const Text(
+                  "Are you available for new jobs?",
+                  style: TextStyle(fontSize: 16, color: darkBlue),
+                ),
                 Switch(
                   value: isAvailable,
                   onChanged: (value) {
@@ -161,24 +197,33 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
       children: [
         const Text(
           "Your New Assignments",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: darkBlue),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: darkBlue,
+          ),
         ),
         const SizedBox(height: 16),
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('jobs')
               .where('workerId', isEqualTo: workerId)
-              .where('status', isEqualTo: 'Assigned') // Or 'Accepted'
+              .where('status', isEqualTo: 'Accepted')
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: lightBlue));
+              return const Center(
+                child: CircularProgressIndicator(color: lightBlue),
+              );
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Text("You have no new job assignments.", style: TextStyle(color: grayBlue));
+              return const Text(
+                "You have no new job assignments.",
+                style: TextStyle(color: grayBlue),
+              );
             }
-            
+
             return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -219,12 +264,15 @@ class _NewJobCardState extends State<NewJobCard> {
         setState(() => _customerName = 'Unknown Customer');
         return;
       }
-      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      if(doc.exists && mounted) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (doc.exists && mounted) {
         setState(() => _customerName = doc.data()?['name'] ?? 'Customer');
       }
-    } catch(e) {
-      if(mounted) setState(() => _customerName = 'Error');
+    } catch (e) {
+      if (mounted) setState(() => _customerName = 'Error');
     }
   }
 
@@ -232,7 +280,9 @@ class _NewJobCardState extends State<NewJobCard> {
   Widget build(BuildContext context) {
     final title = widget.jobData['title'] ?? 'No Title';
     final timestamp = widget.jobData['createdAt'] as Timestamp?;
-    final date = timestamp != null ? DateFormat('d MMM, h:mm a').format(timestamp.toDate()) : 'No date';
+    final date = timestamp != null
+        ? DateFormat('d MMM, h:mm a').format(timestamp.toDate())
+        : 'No date';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -243,7 +293,10 @@ class _NewJobCardState extends State<NewJobCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const Divider(height: 16),
             Text("Customer: $_customerName"),
             Text("Assigned On: $date"),
@@ -252,12 +305,28 @@ class _NewJobCardState extends State<NewJobCard> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  onPressed: () { /* TODO: Implement Start Job Logic */ },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF63ADF2)),
-                  child: const Text("Start Job", style: TextStyle(color: Colors.white)),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatPage(
+                          workerId: widget.jobData['workerId'],
+                          userId: widget.jobData['userId'],
+                          customerName: _customerName,
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF63ADF2),
+                  ),
+                  child: const Text(
+                    "Chat",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

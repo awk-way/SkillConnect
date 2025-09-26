@@ -65,8 +65,8 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
           profilePicUrl: userData['profilePicUrl'] ?? '',
           contact: userData['contact'] ?? 'Not provided',
           email: userData['email'] ?? 'Not provided',
-          address: agentData['address'] ?? 'Not provided',
-          city: agentData['city'] ?? 'Not provided',
+          address: userData['address'] ?? 'Not provided',
+          city: userData['city'] ?? 'Not provided',
           rating: (agentData['rating']?['average'] ?? 0.0).toDouble(),
           services: List<String>.from(agentData['services'] ?? []),
         );
