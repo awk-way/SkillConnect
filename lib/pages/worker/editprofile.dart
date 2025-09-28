@@ -16,7 +16,6 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color grayBlue = Color(0xFF82A0BC);
   static const Color paleBlue = Color(0xFFA7CCED);
 
   // --- Form & State ---
@@ -47,7 +46,10 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not found");
 
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (userDoc.exists && mounted) {
         final userData = userDoc.data()!;
@@ -56,14 +58,19 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
         _currentProfilePicUrl = userData['profilePicUrl'];
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load data: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load data: $e")));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-  
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -84,25 +91,34 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
 
       // 1. Upload new image if one was selected
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref().child('profile_pics').child('${user.uid}.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('profile_pics')
+            .child('${user.uid}.jpg');
         await ref.putFile(_imageFile!);
         newProfilePicUrl = await ref.getDownloadURL();
       }
 
       // 2. Update the user's document
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'name': _nameController.text.trim(),
-        'contact': _contactController.text.trim(),
-        'profilePicUrl': newProfilePicUrl,
-      });
-      
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+            'name': _nameController.text.trim(),
+            'contact': _contactController.text.trim(),
+            'profilePicUrl': newProfilePicUrl,
+          });
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profile updated successfully!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile updated successfully!")),
+        );
         Navigator.of(context).pop();
       }
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -114,14 +130,21 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: darkBlue,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           // Show a checkmark icon to save, disable while saving
           _isSaving
               ? const Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white)),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
                 )
               : IconButton(
                   onPressed: _updateProfile,
@@ -142,14 +165,19 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(labelText: 'Full Name'),
-                      validator: (val) => val!.isEmpty ? 'Please enter your name' : null,
+                      validator: (val) =>
+                          val!.isEmpty ? 'Please enter your name' : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _contactController,
-                      decoration: const InputDecoration(labelText: 'Contact Number'),
+                      decoration: const InputDecoration(
+                        labelText: 'Contact Number',
+                      ),
                       keyboardType: TextInputType.phone,
-                       validator: (val) => val!.isEmpty ? 'Please enter your contact number' : null,
+                      validator: (val) => val!.isEmpty
+                          ? 'Please enter your contact number'
+                          : null,
                     ),
                   ],
                 ),
@@ -167,10 +195,15 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
             backgroundColor: paleBlue,
             backgroundImage: _imageFile != null
                 ? FileImage(_imageFile!)
-                : (_currentProfilePicUrl != null && _currentProfilePicUrl!.isNotEmpty
-                    ? NetworkImage(_currentProfilePicUrl!)
-                    : null) as ImageProvider?,
-            child: _imageFile == null && (_currentProfilePicUrl == null || _currentProfilePicUrl!.isEmpty)
+                : (_currentProfilePicUrl != null &&
+                              _currentProfilePicUrl!.isNotEmpty
+                          ? NetworkImage(_currentProfilePicUrl!)
+                          : null)
+                      as ImageProvider?,
+            child:
+                _imageFile == null &&
+                    (_currentProfilePicUrl == null ||
+                        _currentProfilePicUrl!.isEmpty)
                 ? const Icon(Icons.person, size: 50, color: darkBlue)
                 : null,
           ),
@@ -185,7 +218,7 @@ class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
                 child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

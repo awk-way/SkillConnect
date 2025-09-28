@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 class ChatPage extends StatefulWidget {
   final String jobId;
   final String otherUserName;
-  
+
   const ChatPage({super.key, required this.jobId, required this.otherUserName});
 
   @override
@@ -17,8 +17,7 @@ class _ChatPageState extends State<ChatPage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color paleBlue = Color(0xFFA7CCED);
-  
+
   final _messageController = TextEditingController();
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -27,7 +26,7 @@ class _ChatPageState extends State<ChatPage> {
     _messageController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -40,14 +39,14 @@ class _ChatPageState extends State<ChatPage> {
           .doc(widget.jobId)
           .collection('messages')
           .add({
-        'senderId': currentUserId,
-        'text': messageText,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+            'senderId': currentUserId,
+            'text': messageText,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     }
   }
 
@@ -56,7 +55,10 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text(widget.otherUserName, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.otherUserName,
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: darkBlue,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -72,12 +74,14 @@ class _ChatPageState extends State<ChatPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: lightBlue));
+                  return const Center(
+                    child: CircularProgressIndicator(color: lightBlue),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text("Start the conversation!"));
                 }
-                
+
                 final messages = snapshot.data!.docs;
 
                 return ListView.builder(
@@ -85,7 +89,8 @@ class _ChatPageState extends State<ChatPage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final message = messages[index].data() as Map<String, dynamic>;
+                    final message =
+                        messages[index].data() as Map<String, dynamic>;
                     final isMe = message['senderId'] == currentUserId;
                     return _buildMessageBubble(message, isMe);
                   },
@@ -100,8 +105,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> message, bool isMe) {
-     final timestamp = message['timestamp'] as Timestamp?;
-     final time = timestamp != null ? DateFormat('h:mm a').format(timestamp.toDate()) : '';
+    final timestamp = message['timestamp'] as Timestamp?;
+    final time = timestamp != null
+        ? DateFormat('h:mm a').format(timestamp.toDate())
+        : '';
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -113,21 +120,30 @@ class _ChatPageState extends State<ChatPage> {
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(0),
-            bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(16),
+            bottomLeft: isMe
+                ? const Radius.circular(16)
+                : const Radius.circular(0),
+            bottomRight: isMe
+                ? const Radius.circular(0)
+                : const Radius.circular(16),
           ),
         ),
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Text(
               message['text'] ?? '',
               style: TextStyle(color: isMe ? Colors.white : darkBlue),
             ),
-             const SizedBox(height: 4),
-             Text(
+            const SizedBox(height: 4),
+            Text(
               time,
-              style: TextStyle(fontSize: 10, color: isMe ? Colors.white70 : Colors.grey),
+              style: TextStyle(
+                fontSize: 10,
+                color: isMe ? Colors.white70 : Colors.grey,
+              ),
             ),
           ],
         ),
@@ -156,7 +172,7 @@ class _ChatPageState extends State<ChatPage> {
           IconButton(
             icon: const Icon(Icons.send, color: lightBlue),
             onPressed: _sendMessage,
-          )
+          ),
         ],
       ),
     );

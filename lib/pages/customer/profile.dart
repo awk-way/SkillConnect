@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:skillconnect/pages/customer/editprofile.dart';
-import 'package:skillconnect/pages/signup/login.dart'; 
 
 class CustomerProfile extends StatefulWidget {
   const CustomerProfile({super.key});
@@ -51,9 +50,12 @@ class CustomerProfileState extends State<CustomerProfile> {
         });
       }
     } catch (e) {
-      if(mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching data: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error fetching data: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -72,9 +74,12 @@ class CustomerProfileState extends State<CustomerProfile> {
         Navigator.pushReplacementNamed(context, '/signup/login');
       }
     } catch (e) {
-       if (mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging out: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error logging out: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -118,10 +123,27 @@ class CustomerProfileState extends State<CustomerProfile> {
                   children: [
                     _buildProfileHeader(),
                     const SizedBox(height: 30),
-                    _buildOptionTile(Icons.edit_outlined, 'Edit Profile', onTap: _navigateToEditProfile),
-                    _buildOptionTile(Icons.settings_outlined, 'Settings', onTap: () {}),
-                    _buildOptionTile(Icons.help_outline, 'Help & Support', onTap: () {}),
-                    _buildOptionTile(Icons.logout, 'Logout', isLogout: true, onTap: _logout),
+                    _buildOptionTile(
+                      Icons.edit_outlined,
+                      'Edit Profile',
+                      onTap: _navigateToEditProfile,
+                    ),
+                    _buildOptionTile(
+                      Icons.settings_outlined,
+                      'Settings',
+                      onTap: () {},
+                    ),
+                    _buildOptionTile(
+                      Icons.help_outline,
+                      'Help & Support',
+                      onTap: () {},
+                    ),
+                    _buildOptionTile(
+                      Icons.logout,
+                      'Logout',
+                      isLogout: true,
+                      onTap: _logout,
+                    ),
                   ],
                 ),
               ),
@@ -130,14 +152,17 @@ class CustomerProfileState extends State<CustomerProfile> {
   }
 
   Widget _buildProfileHeader() {
-    String initial = _userName != null && _userName!.isNotEmpty ? _userName![0].toUpperCase() : 'C';
+    String initial = _userName != null && _userName!.isNotEmpty
+        ? _userName![0].toUpperCase()
+        : 'C';
 
     return Column(
       children: [
         CircleAvatar(
           radius: 50,
           backgroundColor: paleBlue,
-           backgroundImage: _userProfilePicUrl != null && _userProfilePicUrl!.isNotEmpty
+          backgroundImage:
+              _userProfilePicUrl != null && _userProfilePicUrl!.isNotEmpty
               ? NetworkImage(_userProfilePicUrl!)
               : null,
           child: (_userProfilePicUrl == null || _userProfilePicUrl!.isEmpty)
@@ -168,14 +193,23 @@ class CustomerProfileState extends State<CustomerProfile> {
     );
   }
 
-  Widget _buildOptionTile(IconData icon, String title, {bool isLogout = false, VoidCallback? onTap}) {
+  Widget _buildOptionTile(
+    IconData icon,
+    String title, {
+    bool isLogout = false,
+    VoidCallback? onTap,
+  }) {
     final color = isLogout ? Colors.redAccent : darkBlue;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(title, style: TextStyle(fontSize: 16, color: color)),
-        trailing: const Icon(Icons.arrow_forward_ios, color: grayBlue, size: 18),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          color: grayBlue,
+          size: 18,
+        ),
         onTap: onTap,
       ),
     );

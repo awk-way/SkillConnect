@@ -15,7 +15,6 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
-  static const Color mediumBlue = Color(0xFF545E75);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -54,7 +53,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not found");
 
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       if (doc.exists && mounted) {
         final data = doc.data()!;
         _nameController.text = data['name'] ?? '';
@@ -71,9 +73,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-  
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -94,27 +99,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       // 1. Upload new image if one was selected
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref().child('profile_pics').child('${user.uid}.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('profile_pics')
+            .child('${user.uid}.jpg');
         await ref.putFile(_imageFile!);
         newProfilePicUrl = await ref.getDownloadURL();
       }
 
       // 2. Update user document in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'name': _nameController.text.trim(),
-        'contact': _contactController.text.trim(),
-        'address': _addressController.text.trim(),
-        'city': _cityController.text.trim(),
-        'profilePicUrl': newProfilePicUrl ?? '',
-      });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+            'name': _nameController.text.trim(),
+            'contact': _contactController.text.trim(),
+            'address': _addressController.text.trim(),
+            'city': _cityController.text.trim(),
+            'profilePicUrl': newProfilePicUrl ?? '',
+          });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.of(context).pop();
       }
-
     } catch (e) {
       _showErrorSnackBar('Failed to save profile: $e');
     } finally {
@@ -136,7 +149,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
@@ -148,10 +164,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   _buildAvatar(),
                   const SizedBox(height: 32),
-                  _buildTextField(_nameController, 'Full Name', Icons.person_outline),
-                  _buildTextField(_contactController, 'Contact Number', Icons.phone_outlined, keyboardType: TextInputType.phone),
-                  _buildTextField(_addressController, 'Address', Icons.location_on_outlined),
-                  _buildTextField(_cityController, 'City', Icons.location_city_outlined),
+                  _buildTextField(
+                    _nameController,
+                    'Full Name',
+                    Icons.person_outline,
+                  ),
+                  _buildTextField(
+                    _contactController,
+                    'Contact Number',
+                    Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  _buildTextField(
+                    _addressController,
+                    'Address',
+                    Icons.location_on_outlined,
+                  ),
+                  _buildTextField(
+                    _cityController,
+                    'City',
+                    Icons.location_city_outlined,
+                  ),
                   _buildEmailField(),
                   const SizedBox(height: 32),
                   _buildSaveButton(),
@@ -171,9 +204,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
             backgroundImage: _imageFile != null
                 ? FileImage(_imageFile!)
                 : (_profilePicUrl != null && _profilePicUrl!.isNotEmpty
-                    ? NetworkImage(_profilePicUrl!)
-                    : null) as ImageProvider?,
-            child: (_imageFile == null && (_profilePicUrl == null || _profilePicUrl!.isEmpty))
+                          ? NetworkImage(_profilePicUrl!)
+                          : null)
+                      as ImageProvider?,
+            child:
+                (_imageFile == null &&
+                    (_profilePicUrl == null || _profilePicUrl!.isEmpty))
                 ? const Icon(Icons.person, size: 60, color: darkBlue)
                 : null,
           ),
@@ -184,7 +220,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
               radius: 20,
               backgroundColor: lightBlue,
               child: IconButton(
-                icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                icon: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 onPressed: _pickImage,
               ),
             ),
@@ -193,8 +233,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
-  
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType}) {
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    TextInputType? keyboardType,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -205,13 +250,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
           prefixIcon: Icon(icon, color: grayBlue),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        validator: (value) => (value == null || value.isEmpty) ? 'This field cannot be empty' : null,
+        validator: (value) => (value == null || value.isEmpty)
+            ? 'This field cannot be empty'
+            : null,
       ),
     );
   }
-  
+
   Widget _buildEmailField() {
-     return Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         initialValue: _userEmail,
@@ -236,7 +283,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         onPressed: _saveProfile,
         style: ElevatedButton.styleFrom(
           backgroundColor: lightBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: _isSaving
             ? const CircularProgressIndicator(color: Colors.white)

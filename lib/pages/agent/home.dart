@@ -18,7 +18,6 @@ class WorkerInfo {
   WorkerInfo({required this.id, required this.name});
 }
 
-
 // --- Main Agent Home Page Widget ---
 class AgentHomePage extends StatefulWidget {
   const AgentHomePage({super.key});
@@ -48,10 +47,26 @@ class _AgentHomePageState extends State<AgentHomePage> {
         selectedItemColor: const Color(0xFF63ADF2), // lightBlue
         unselectedItemColor: const Color(0xFF82A0BC), // grayBlue
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.work_history_outlined), activeIcon: Icon(Icons.work_history), label: 'Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt_outlined), activeIcon: Icon(Icons.people_alt), label: 'Workers'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work_history_outlined),
+            activeIcon: Icon(Icons.work_history),
+            label: 'Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_alt_outlined),
+            activeIcon: Icon(Icons.people_alt),
+            label: 'Workers',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -77,8 +92,14 @@ class _AgentDashboardState extends State<AgentDashboard> {
   Future<Agent?> _fetchAgentData() async {
     if (agentId == null) return null;
     try {
-      DocumentSnapshot agentDoc = await FirebaseFirestore.instance.collection('agents').doc(agentId).get();
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(agentId).get();
+      DocumentSnapshot agentDoc = await FirebaseFirestore.instance
+          .collection('agents')
+          .doc(agentId)
+          .get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(agentId)
+          .get();
 
       if (agentDoc.exists && userDoc.exists) {
         return Agent(
@@ -104,17 +125,30 @@ class _AgentDashboardState extends State<AgentDashboard> {
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const SizedBox.shrink();
             final agent = snapshot.data!;
-            final initial = agent.organisationName.isNotEmpty ? agent.organisationName[0].toUpperCase() : 'A';
+            final initial = agent.organisationName.isNotEmpty
+                ? agent.organisationName[0].toUpperCase()
+                : 'A';
             return Row(
               children: [
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: paleBlue,
-                  backgroundImage: agent.profilePicUrl.isNotEmpty ? NetworkImage(agent.profilePicUrl) : null,
-                  child: agent.profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(color: darkBlue)) : null,
+                  backgroundImage: agent.profilePicUrl.isNotEmpty
+                      ? NetworkImage(agent.profilePicUrl)
+                      : null,
+                  child: agent.profilePicUrl.isEmpty
+                      ? Text(initial, style: const TextStyle(color: darkBlue))
+                      : null,
                 ),
                 const SizedBox(width: 12),
-                Text(agent.organisationName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  agent.organisationName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             );
           },
@@ -123,7 +157,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},
-          )
+          ),
         ],
       ),
       body: ListView(
@@ -139,45 +173,70 @@ class _AgentDashboardState extends State<AgentDashboard> {
     );
   }
 
-   Widget _buildStatsSection() {
+  Widget _buildStatsSection() {
     return Row(
       children: [
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('jobs').where('agentId', isEqualTo: agentId).where('status', isEqualTo: 'Accepted').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('jobs')
+                .where('agentId', isEqualTo: agentId)
+                .where('status', isEqualTo: 'Accepted')
+                .snapshots(),
             builder: (context, snapshot) {
               int totalJobs = 0;
               if (snapshot.hasData) {
                 totalJobs = snapshot.data!.docs.length;
               }
-              return _buildStatCard('Total Jobs', '$totalJobs', Icons.work_history, Colors.orange);
+              return _buildStatCard(
+                'Total Jobs',
+                '$totalJobs',
+                Icons.work_history,
+                Colors.orange,
+              );
             },
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('workers').where('agentId', isEqualTo: agentId).snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('workers')
+                .where('agentId', isEqualTo: agentId)
+                .snapshots(),
             builder: (context, snapshot) {
               int workerCount = 0;
               if (snapshot.hasData) {
                 workerCount = snapshot.data!.docs.length;
               }
-              return _buildStatCard('Workers', '$workerCount', Icons.people, Colors.green);
+              return _buildStatCard(
+                'Workers',
+                '$workerCount',
+                Icons.people,
+                Colors.green,
+              );
             },
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance.collection('agents').doc(agentId).snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('agents')
+                .doc(agentId)
+                .snapshots(),
             builder: (context, snapshot) {
               double rating = 0.0;
               if (snapshot.hasData && snapshot.data!.exists) {
                 final data = snapshot.data!.data() as Map<String, dynamic>;
                 rating = (data['rating']?['average'] ?? 0.0).toDouble();
               }
-              return _buildStatCard('Rating', rating.toStringAsFixed(1), Icons.star, Colors.blue);
+              return _buildStatCard(
+                'Rating',
+                rating.toStringAsFixed(1),
+                Icons.star,
+                Colors.blue,
+              );
             },
           ),
         ),
@@ -185,11 +244,16 @@ class _AgentDashboardState extends State<AgentDashboard> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -197,8 +261,15 @@ class _AgentDashboardState extends State<AgentDashboard> {
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          Text(title, style: TextStyle(color: color.withOpacity(0.8))),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(title, style: TextStyle(color: color.withValues(alpha: 0.8))),
         ],
       ),
     );
@@ -210,7 +281,11 @@ class _AgentDashboardState extends State<AgentDashboard> {
       children: [
         const Text(
           "New Job Requests",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: darkBlue),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: darkBlue,
+          ),
         ),
         const SizedBox(height: 16),
         StreamBuilder<QuerySnapshot>(
@@ -222,13 +297,21 @@ class _AgentDashboardState extends State<AgentDashboard> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: lightBlue));
+              return const Center(
+                child: CircularProgressIndicator(color: lightBlue),
+              );
             }
-             if (snapshot.hasError) {
-              return const Text("Error loading jobs.", style: TextStyle(color: Colors.red));
+            if (snapshot.hasError) {
+              return const Text(
+                "Error loading jobs.",
+                style: TextStyle(color: Colors.red),
+              );
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Text("No new job requests.", style: TextStyle(color: Colors.grey));
+              return const Text(
+                "No new job requests.",
+                style: TextStyle(color: Colors.grey),
+              );
             }
             return ListView.builder(
               shrinkWrap: true,
@@ -236,7 +319,10 @@ class _AgentDashboardState extends State<AgentDashboard> {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final doc = snapshot.data!.docs[index];
-                return NewJobCard(jobData: doc.data() as Map<String, dynamic>, docId: doc.id);
+                return NewJobCard(
+                  jobData: doc.data() as Map<String, dynamic>,
+                  docId: doc.id,
+                );
               },
             );
           },
@@ -244,14 +330,18 @@ class _AgentDashboardState extends State<AgentDashboard> {
       ],
     );
   }
-  
+
   Widget _buildActiveJobsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           "Active Jobs",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: darkBlue),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: darkBlue,
+          ),
         ),
         const SizedBox(height: 16),
         StreamBuilder<QuerySnapshot>(
@@ -263,13 +353,21 @@ class _AgentDashboardState extends State<AgentDashboard> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: lightBlue));
+              return const Center(
+                child: CircularProgressIndicator(color: lightBlue),
+              );
             }
-             if (snapshot.hasError) {
-              return const Text("Error loading jobs. Ensure Firestore indexes are built.", style: TextStyle(color: Colors.red));
+            if (snapshot.hasError) {
+              return const Text(
+                "Error loading jobs. Ensure Firestore indexes are built.",
+                style: TextStyle(color: Colors.red),
+              );
             }
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Text("No active jobs at the moment.", style: TextStyle(color: Colors.grey));
+              return const Text(
+                "No active jobs at the moment.",
+                style: TextStyle(color: Colors.grey),
+              );
             }
             return ListView.builder(
               shrinkWrap: true,
@@ -277,7 +375,9 @@ class _AgentDashboardState extends State<AgentDashboard> {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final doc = snapshot.data!.docs[index];
-                return ActiveJobCard(jobData: doc.data() as Map<String, dynamic>);
+                return ActiveJobCard(
+                  jobData: doc.data() as Map<String, dynamic>,
+                );
               },
             );
           },
@@ -310,24 +410,43 @@ class _NewJobCardState extends State<NewJobCard> {
   Future<void> _fetchCustomerName() async {
     try {
       final userId = widget.jobData['userId'];
-      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      if(doc.exists && mounted) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (doc.exists && mounted) {
         setState(() => _customerName = doc.data()?['name'] ?? 'Customer');
       }
-    } catch(e) {
-      if(mounted) setState(() => _customerName = 'Error');
+    } catch (e) {
+      if (mounted) setState(() => _customerName = 'Error');
     }
   }
 
   Future<void> _declineJob() async {
-     final confirm = await showDialog<bool>(context: context, builder: (c) => AlertDialog(
-      title: const Text("Decline Job"),
-      content: const Text("Are you sure you want to decline this job request?"),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(c).pop(false), child: const Text("Cancel")),
-        TextButton(onPressed: () => Navigator.of(c).pop(true), child: const Text("Decline", style: TextStyle(color: Colors.red))),
-      ],
-    )) ?? false;
+    final confirm =
+        await showDialog<bool>(
+          context: context,
+          builder: (c) => AlertDialog(
+            title: const Text("Decline Job"),
+            content: const Text(
+              "Are you sure you want to decline this job request?",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(false),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(c).pop(true),
+                child: const Text(
+                  "Decline",
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
 
     if (!confirm || !mounted) return;
 
@@ -335,58 +454,78 @@ class _NewJobCardState extends State<NewJobCard> {
 
     try {
       WriteBatch batch = FirebaseFirestore.instance.batch();
-      batch.update(FirebaseFirestore.instance.collection('jobs').doc(widget.docId), {'status': 'Declined'});
+      batch.update(
+        FirebaseFirestore.instance.collection('jobs').doc(widget.docId),
+        {'status': 'Declined'},
+      );
       batch.set(FirebaseFirestore.instance.collection('notifications').doc(), {
         'receiver_id': widget.jobData['userId'],
         'title': 'Job Request Declined',
-        'message': 'Your request for "${widget.jobData['title']}" was declined by the agent.',
+        'message':
+            'Your request for "${widget.jobData['title']}" was declined by the agent.',
         'status': 'unread',
         'type': 'job_declined',
         'time': FieldValue.serverTimestamp(),
       });
       await batch.commit();
-      
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Job declined.")));
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Job declined.")));
     } catch (e) {
       if (mounted) setState(() => _isActionInProgress = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
   Future<void> _acceptAndAssignJob(String workerId) async {
-     setState(() => _isActionInProgress = true);
-     try {
+    setState(() => _isActionInProgress = true);
+    try {
       WriteBatch batch = FirebaseFirestore.instance.batch();
-      
-      batch.update(FirebaseFirestore.instance.collection('jobs').doc(widget.docId), {
-        'status': 'Accepted',
-        'workerId': workerId,
-        'acceptedAt': FieldValue.serverTimestamp(),
-      });
-      
+
+      batch.update(
+        FirebaseFirestore.instance.collection('jobs').doc(widget.docId),
+        {
+          'status': 'Accepted',
+          'workerId': workerId,
+          'acceptedAt': FieldValue.serverTimestamp(),
+        },
+      );
+
       batch.set(FirebaseFirestore.instance.collection('notifications').doc(), {
         'receiver_id': widget.jobData['userId'],
         'title': 'Job Accepted!',
-        'message': 'Your request for "${widget.jobData['title']}" has been accepted.',
+        'message':
+            'Your request for "${widget.jobData['title']}" has been accepted.',
         'status': 'unread',
         'type': 'job_accepted',
         'time': FieldValue.serverTimestamp(),
       });
-      
+
       batch.set(FirebaseFirestore.instance.collection('notifications').doc(), {
         'receiver_id': workerId,
         'title': 'New Job Assignment',
-        'message': 'You have been assigned a new job: "${widget.jobData['title']}".',
+        'message':
+            'You have been assigned a new job: "${widget.jobData['title']}".',
         'status': 'unread',
         'type': 'new_assignment',
         'time': FieldValue.serverTimestamp(),
       });
 
       await batch.commit();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Job accepted and assigned!"), backgroundColor: Colors.green,));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Job accepted and assigned!"),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (mounted) setState(() => _isActionInProgress = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error assigning job: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error assigning job: $e")));
     }
   }
 
@@ -407,42 +546,66 @@ class _NewJobCardState extends State<NewJobCard> {
   Widget build(BuildContext context) {
     final title = widget.jobData['title'] ?? 'No Title';
     final timestamp = widget.jobData['createdAt'] as Timestamp?;
-    final date = timestamp != null ? DateFormat('d MMM, h:mm a').format(timestamp.toDate()) : 'No date';
+    final date = timestamp != null
+        ? DateFormat('d MMM, h:mm a').format(timestamp.toDate())
+        : 'No date';
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
-      child: _isActionInProgress 
-      ? const SizedBox.shrink()
-      : Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text("From: $_customerName", style: const TextStyle(color: Colors.grey)),
-              Text("On: $date"),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(onPressed: _declineJob, child: const Text("Decline", style: TextStyle(color: Colors.red))),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _showAssignWorkerDialog,
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF63ADF2)),
-                    child: const Text("Accept", style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
-      ),
+      child: _isActionInProgress
+          ? const SizedBox.shrink()
+          : Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "From: $_customerName",
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    Text("On: $date"),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: _declineJob,
+                          child: const Text(
+                            "Decline",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _showAssignWorkerDialog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF63ADF2),
+                          ),
+                          child: const Text(
+                            "Accept",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }
@@ -467,12 +630,19 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
 
   Future<void> _fetchNames() async {
     try {
-      final customerDoc = await FirebaseFirestore.instance.collection('users').doc(widget.jobData['userId']).get();
-      if (customerDoc.exists) _customerName = customerDoc.data()?['name'] ?? 'Customer';
+      final customerDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.jobData['userId'])
+          .get();
+      if (customerDoc.exists)
+        _customerName = customerDoc.data()?['name'] ?? 'Customer';
 
-      final workerDoc = await FirebaseFirestore.instance.collection('users').doc(widget.jobData['workerId']).get();
+      final workerDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.jobData['workerId'])
+          .get();
       if (workerDoc.exists) _workerName = workerDoc.data()?['name'] ?? 'Worker';
-      
+
       if (mounted) setState(() {});
     } catch (e) {
       print("Error fetching names for active job card: $e");
@@ -496,11 +666,22 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Chip(
                   label: Text(status),
-                  backgroundColor: status == 'Accepted' ? Colors.blue.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                  labelStyle: TextStyle(color: status == 'Accepted' ? Colors.blue : Colors.green, fontWeight: FontWeight.bold),
+                  backgroundColor: status == 'Accepted'
+                      ? Colors.blue.withValues(alpha: 0.1)
+                      : Colors.green.withValues(alpha: 0.1),
+                  labelStyle: TextStyle(
+                    color: status == 'Accepted' ? Colors.blue : Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -517,7 +698,11 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
 class AssignWorkerDialog extends StatefulWidget {
   final String serviceNeeded;
   final Function(String workerId) onAssign;
-  const AssignWorkerDialog({super.key, required this.serviceNeeded, required this.onAssign});
+  const AssignWorkerDialog({
+    super.key,
+    required this.serviceNeeded,
+    required this.onAssign,
+  });
 
   @override
   State<AssignWorkerDialog> createState() => _AssignWorkerDialogState();
@@ -539,7 +724,9 @@ class _AssignWorkerDialogState extends State<AssignWorkerDialog> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+            if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data!.isEmpty) {
               return const Text("No available workers found for this service.");
             }
 
@@ -553,7 +740,8 @@ class _AssignWorkerDialogState extends State<AssignWorkerDialog> {
                   title: Text(worker.name),
                   value: worker.id,
                   groupValue: _selectedWorkerId,
-                  onChanged: (value) => setState(() => _selectedWorkerId = value),
+                  onChanged: (value) =>
+                      setState(() => _selectedWorkerId = value),
                 );
               },
             );
@@ -561,16 +749,24 @@ class _AssignWorkerDialogState extends State<AssignWorkerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
         ElevatedButton(
-          onPressed: _selectedWorkerId == null ? null : () => widget.onAssign(_selectedWorkerId!),
+          onPressed: _selectedWorkerId == null
+              ? null
+              : () => widget.onAssign(_selectedWorkerId!),
           child: const Text("Assign"),
         ),
       ],
     );
   }
 
-  Future<List<WorkerInfo>> _getAvailableWorkers(String? agentId, String service) async {
+  Future<List<WorkerInfo>> _getAvailableWorkers(
+    String? agentId,
+    String service,
+  ) async {
     if (agentId == null) return [];
 
     final workerQuery = await FirebaseFirestore.instance
@@ -583,15 +779,20 @@ class _AssignWorkerDialogState extends State<AssignWorkerDialog> {
     if (workerQuery.docs.isEmpty) return [];
 
     List<Future<WorkerInfo?>> futures = workerQuery.docs.map((doc) async {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(doc.id).get();
-      if(userDoc.exists) {
-        return WorkerInfo(id: doc.id, name: userDoc.data()?['name'] ?? 'Unnamed');
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(doc.id)
+          .get();
+      if (userDoc.exists) {
+        return WorkerInfo(
+          id: doc.id,
+          name: userDoc.data()?['name'] ?? 'Unnamed',
+        );
       }
       return null;
     }).toList();
-    
+
     final results = await Future.wait(futures);
     return results.where((w) => w != null).cast<WorkerInfo>().toList();
   }
 }
-

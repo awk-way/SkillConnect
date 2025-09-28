@@ -90,16 +90,14 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       _buildHomeContent(),
-      const JobsPage(), 
-      const CustomerProfile(), 
+      const JobsPage(),
+      const CustomerProfile(),
     ];
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: _isDataLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: lightBlue),
-            )
+          ? const Center(child: CircularProgressIndicator(color: lightBlue))
           : pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -160,10 +158,7 @@ class CustomerHomePageState extends State<CustomerHomePage> {
             const SizedBox(height: 8),
             const Text(
               'What service do you need today?',
-              style: TextStyle(
-                fontSize: 16,
-                color: grayBlue,
-              ),
+              style: TextStyle(fontSize: 16, color: grayBlue),
             ),
             const SizedBox(height: 24),
             _buildSearchBar(),
@@ -176,14 +171,17 @@ class CustomerHomePageState extends State<CustomerHomePage> {
   }
 
   Widget _buildTopBar() {
-    String initial = _userName != null && _userName!.isNotEmpty ? _userName![0].toUpperCase() : 'U';
+    String initial = _userName != null && _userName!.isNotEmpty
+        ? _userName![0].toUpperCase()
+        : 'U';
 
     return Row(
       children: [
         CircleAvatar(
           radius: 25,
           backgroundColor: paleBlue,
-          backgroundImage: _userProfilePicUrl != null && _userProfilePicUrl!.isNotEmpty
+          backgroundImage:
+              _userProfilePicUrl != null && _userProfilePicUrl!.isNotEmpty
               ? NetworkImage(_userProfilePicUrl!)
               : null,
           child: (_userProfilePicUrl == null || _userProfilePicUrl!.isEmpty)
@@ -227,8 +225,14 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('notifications')
-              .where('receiver_id', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-              .where('status', isEqualTo: 'unread') // Requires a composite index
+              .where(
+                'receiver_id',
+                isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+              )
+              .where(
+                'status',
+                isEqualTo: 'unread',
+              ) // Requires a composite index
               .snapshots(),
           builder: (context, snapshot) {
             int unreadCount = 0;
@@ -239,7 +243,12 @@ class CustomerHomePageState extends State<CustomerHomePage> {
               children: [
                 IconButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsPage(),
+                      ),
+                    );
                   },
                   icon: Container(
                     padding: const EdgeInsets.all(8),
@@ -248,13 +257,17 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.notifications_outlined, color: darkBlue, size: 24),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: darkBlue,
+                      size: 24,
+                    ),
                   ),
                 ),
                 if (unreadCount > 0)
@@ -267,10 +280,16 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
                       child: Text(
                         '$unreadCount',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -290,7 +309,7 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -317,13 +336,16 @@ class CustomerHomePageState extends State<CustomerHomePage> {
               if (service.name == 'More') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SelectService()),
+                  MaterialPageRoute(
+                    builder: (context) => const SelectService(),
+                  ),
                 );
               } else {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AvailableAgentsPage(selectedService: service.name),
+                    builder: (context) =>
+                        AvailableAgentsPage(selectedService: service.name),
                   ),
                 );
               }
@@ -336,7 +358,7 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -350,7 +372,11 @@ class CustomerHomePageState extends State<CustomerHomePage> {
                     height: 50,
                     padding: const EdgeInsets.all(8),
                     child: service.name == 'More'
-                        ? const Icon(Icons.arrow_forward, color: lightBlue, size: 28)
+                        ? const Icon(
+                            Icons.arrow_forward,
+                            color: lightBlue,
+                            size: 28,
+                          )
                         : Image.network(
                             service.imageUrl,
                             fit: BoxFit.contain,

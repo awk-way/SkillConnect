@@ -62,7 +62,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           .snapshots();
     }
   }
-  
+
   Future<void> _markAsRead(String notificationId) async {
     try {
       await FirebaseFirestore.instance
@@ -80,7 +80,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: darkBlue,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -88,7 +91,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         stream: _notificationsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: lightBlue));
+            return const Center(
+              child: CircularProgressIndicator(color: lightBlue),
+            );
           }
           if (snapshot.hasError) {
             return _buildErrorState();
@@ -117,12 +122,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: notification.isRead ? Colors.white : lightBlue.withOpacity(0.05),
-        border: Border(left: BorderSide(color: notification.isRead ? Colors.transparent : lightBlue, width: 4))
+        color: notification.isRead
+            ? Colors.white
+            : lightBlue.withValues(alpha: 0.05),
+        border: Border(
+          left: BorderSide(
+            color: notification.isRead ? Colors.transparent : lightBlue,
+            width: 4,
+          ),
+        ),
       ),
       child: ListTile(
         leading: _getIconForType(notification.type),
-        title: Text(notification.title, style: const TextStyle(fontWeight: FontWeight.bold, color: darkBlue)),
+        title: Text(
+          notification.title,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: darkBlue),
+        ),
         subtitle: Text(notification.message),
         trailing: Text(
           timeago.format(notification.time.toDate()),
@@ -137,11 +152,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
       ),
     );
   }
-  
+
   Widget _getIconForType(String type) {
     IconData iconData;
     Color color;
-    switch(type) {
+    switch (type) {
       case 'job_accepted':
         iconData = Icons.check_circle_outline;
         color = Colors.green;
@@ -151,15 +166,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
         color = lightBlue;
         break;
       case 'job_cancelled':
-         iconData = Icons.cancel_outlined;
-         color = Colors.red;
-         break;
+        iconData = Icons.cancel_outlined;
+        color = Colors.red;
+        break;
       default:
         iconData = Icons.notifications_outlined;
         color = grayBlue;
     }
     return CircleAvatar(
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       child: Icon(iconData, color: color, size: 24),
     );
   }
@@ -169,11 +184,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_outlined, size: 80, color: grayBlue.withOpacity(0.5)),
+          Icon(
+            Icons.notifications_off_outlined,
+            size: 80,
+            color: grayBlue.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 20),
           const Text(
             'No Notifications',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: darkBlue,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -187,7 +210,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildErrorState() {
-     return const Center(
+    return const Center(
       child: Padding(
         padding: EdgeInsets.all(24.0),
         child: Column(
@@ -198,7 +221,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
             Text(
               'Database Index Required',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             SizedBox(height: 12),
             Text(

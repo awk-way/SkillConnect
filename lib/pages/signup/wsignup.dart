@@ -94,7 +94,10 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Agent Signup', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Agent Signup',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Container(
         margin: const EdgeInsets.symmetric(horizontal: 30),
@@ -162,8 +165,9 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -201,7 +205,7 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                     return null;
                   },
                 ),
-                 _buildInputField(
+                _buildInputField(
                   controller: _cityController,
                   focusNode: _cityFocusNode,
                   labelText: 'City',
@@ -237,7 +241,8 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                       color: grayBlue,
                     ),
                     onPressed: () => setState(
-                        () => _isPasswordVisible = !_isPasswordVisible),
+                      () => _isPasswordVisible = !_isPasswordVisible,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -262,8 +267,10 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () => setState(() =>
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                    onPressed: () => setState(
+                      () => _isConfirmPasswordVisible =
+                          !_isConfirmPasswordVisible,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -343,7 +350,7 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: mediumBlue.withOpacity(0.3),
+        color: mediumBlue.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
@@ -357,7 +364,10 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 15,
+          ),
           labelText: labelText,
           labelStyle: const TextStyle(color: paleBlue),
           prefixIcon: Icon(icon, color: lightBlue),
@@ -374,7 +384,7 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: mediumBlue.withOpacity(0.3),
+        color: mediumBlue.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
@@ -398,7 +408,10 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
           const SizedBox(height: 10),
           Text(
             'Select one or more services your organization provides:',
-            style: TextStyle(color: paleBlue.withOpacity(0.8), fontSize: 14),
+            style: TextStyle(
+              color: paleBlue.withValues(alpha: 0.8),
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 15),
           Wrap(
@@ -418,7 +431,10 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected ? lightBlue : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
@@ -432,8 +448,9 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
                     style: TextStyle(
                       color: isSelected ? Colors.white : paleBlue,
                       fontSize: 14,
-                      fontWeight:
-                          isSelected ? FontWeight.w500 : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.w500
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -456,7 +473,7 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
   // --- Main Sign Up Logic ---
   void _performAgentSignUp() async {
     if (!_formKey.currentState!.validate() || _selectedServices.isEmpty) {
-       if (_selectedServices.isEmpty) {
+      if (_selectedServices.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select at least one service.'),
@@ -473,16 +490,17 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
       // 1. Create user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       String uid = userCredential.user!.uid;
 
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
-      DocumentReference userDocRef =
-          FirebaseFirestore.instance.collection('users').doc(uid);
+      DocumentReference userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid);
       batch.set(userDocRef, {
         'uid': uid,
         'name': _nameController.text.trim(),
@@ -490,13 +508,14 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
         'contact': _contactController.text.trim(),
         'address': _addressController.text.trim(),
         'city': _cityController.text.trim(),
-        'profilePicUrl': '', 
+        'profilePicUrl': '',
         'userType': 'Agent',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      DocumentReference agentDocRef =
-          FirebaseFirestore.instance.collection('agents').doc(uid);
+      DocumentReference agentDocRef = FirebaseFirestore.instance
+          .collection('agents')
+          .doc(uid);
       batch.set(agentDocRef, {
         'orgName': _orgNameController.text.trim(),
         'availability': true,
@@ -511,10 +530,9 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/agent/home', 
-        (Route<dynamic> route) => false,
-      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/agent/home', (Route<dynamic> route) => false);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -538,11 +556,11 @@ class AgentSignUpScreenState extends State<AgentSignUpScreen> {
       }
     }
   }
-  
+
   void _showErrorSnackBar(String message) {
-     if (!mounted) return;
-     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
-      );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+    );
   }
 }

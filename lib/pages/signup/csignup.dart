@@ -68,8 +68,10 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title:
-            const Text('Customer Signup', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Customer Signup',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: Container(
         margin: const EdgeInsets.symmetric(horizontal: 30),
@@ -80,7 +82,11 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(height: 20),
-                const Icon(Icons.person_add_alt_1_outlined, size: 60, color: lightBlue),
+                const Icon(
+                  Icons.person_add_alt_1_outlined,
+                  size: 60,
+                  color: lightBlue,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Create Customer Account',
@@ -123,8 +129,9 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -194,8 +201,9 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () =>
-                        setState(() => _isPasswordVisible = !_isPasswordVisible),
+                    onPressed: () => setState(
+                      () => _isPasswordVisible = !_isPasswordVisible,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -220,8 +228,10 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           : Icons.visibility_off,
                       color: grayBlue,
                     ),
-                    onPressed: () => setState(() =>
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                    onPressed: () => setState(
+                      () => _isConfirmPasswordVisible =
+                          !_isConfirmPasswordVisible,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -301,7 +311,7 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
       decoration: BoxDecoration(
-        color: mediumBlue.withOpacity(0.3),
+        color: mediumBlue.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue, width: 1),
       ),
@@ -315,8 +325,10 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 15,
+          ),
           labelText: labelText,
           labelStyle: const TextStyle(color: paleBlue),
           prefixIcon: Icon(icon, color: lightBlue),
@@ -337,9 +349,9 @@ class CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       // 1. Create user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       String uid = userCredential.user!.uid;
 

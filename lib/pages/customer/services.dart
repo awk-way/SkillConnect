@@ -24,14 +24,14 @@ class _SelectServiceState extends State<SelectService> {
 
   final List<ServiceCategory> services = [
     ServiceCategory(
-      'Electrical Work', 
+      'Electrical Work',
       'https://img.icons8.com/external-wanicon-flat-wanicon/2x/external-multimeter-car-service-wanicon-flat-wanicon.png',
     ),
     ServiceCategory(
       'Plumbing',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-plumber-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
-    ServiceCategory('Carpentry', 'https://img.icons8.com/fluency/2x/drill.png'), 
+    ServiceCategory('Carpentry', 'https://img.icons8.com/fluency/2x/drill.png'),
     ServiceCategory(
       'AC Repair',
       'https://img.icons8.com/?size=100&id=Jskg4-JWkjF4&format=png&color=000000',
@@ -61,7 +61,7 @@ class _SelectServiceState extends State<SelectService> {
       'https://img.icons8.com/?size=100&id=zY1O74QugicA&format=png&color=000000',
     ),
     ServiceCategory(
-      'Cleaning', 
+      'Cleaning',
       'https://img.icons8.com/external-vitaliy-gorbachev-flat-vitaly-gorbachev/2x/external-cleaning-labour-day-vitaliy-gorbachev-flat-vitaly-gorbachev.png',
     ),
     ServiceCategory(
@@ -158,7 +158,7 @@ class _SelectServiceState extends State<SelectService> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -208,7 +208,9 @@ class _SelectServiceState extends State<SelectService> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AvailableAgentsPage(selectedService: selectedService!),
+                        builder: (context) => AvailableAgentsPage(
+                          selectedService: selectedService!,
+                        ),
                       ),
                     );
                   },
@@ -235,7 +237,7 @@ class _SelectServiceState extends State<SelectService> {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

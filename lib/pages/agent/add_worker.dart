@@ -28,9 +28,21 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
   bool _isLoading = false;
 
   final List<String> _availableServices = [
-    'Plumbing', 'Electrical Work', 'Carpentry', 'Painting', 'Cleaning', 
-    'Gardening', 'Appliance Repair', 'HVAC Services', 'Masonry', 'Roofing',
-    'Pest Control', 'Moving Services', 'Handyman Services', 'Auto Repair', 'Other',
+    'Plumbing',
+    'Electrical Work',
+    'Carpentry',
+    'Painting',
+    'Cleaning',
+    'Gardening',
+    'Appliance Repair',
+    'HVAC Services',
+    'Masonry',
+    'Roofing',
+    'Pest Control',
+    'Moving Services',
+    'Handyman Services',
+    'Auto Repair',
+    'Other',
   ];
 
   @override
@@ -44,8 +56,13 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
 
   Future<void> _createWorker() async {
     if (!_formKey.currentState!.validate() || _selectedServices.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and select at least one service.'), backgroundColor: Colors.red),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please fill all fields and select at least one service.',
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -56,15 +73,19 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
       // Create a temporary, secondary Firebase app to create a new user
       // This is necessary because the agent is already logged in on the default app.
       FirebaseApp tempApp = await Firebase.initializeApp(
-        name: 'tempWorkerApp-${DateTime.now().millisecondsSinceEpoch}', // Unique name
+        name:
+            'tempWorkerApp-${DateTime.now().millisecondsSinceEpoch}', // Unique name
         options: Firebase.app().options,
       );
 
       // Create user in Firebase Auth using the temporary app
-      UserCredential userCredential = await FirebaseAuth.instanceFor(app: tempApp)
-          .createUserWithEmailAndPassword(
-              email: _emailController.text.trim(),
-              password: _passwordController.text.trim());
+      UserCredential userCredential =
+          await FirebaseAuth.instanceFor(
+            app: tempApp,
+          ).createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       String newWorkerUid = userCredential.user!.uid;
       String? agentUid = FirebaseAuth.instance.currentUser?.uid;
@@ -75,42 +96,56 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
       // 1. Create worker document in 'users' collection
-      batch.set(FirebaseFirestore.instance.collection('users').doc(newWorkerUid), {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'contact': _contactController.text.trim(),
-        'profilePicUrl': '',
-        'userType': 'Worker',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      batch.set(
+        FirebaseFirestore.instance.collection('users').doc(newWorkerUid),
+        {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'contact': _contactController.text.trim(),
+          'profilePicUrl': '',
+          'userType': 'Worker',
+          'createdAt': FieldValue.serverTimestamp(),
+        },
+      );
 
       // 2. Create worker document in 'workers' collection
-      batch.set(FirebaseFirestore.instance.collection('workers').doc(newWorkerUid), {
-        'agentId': agentUid,
-        'availability': true,
-        'rating': 0.0,
-        'services': _selectedServices,
-      });
+      batch.set(
+        FirebaseFirestore.instance.collection('workers').doc(newWorkerUid),
+        {
+          'agentId': agentUid,
+          'availability': true,
+          'rating': 0.0,
+          'services': _selectedServices,
+        },
+      );
 
       await batch.commit();
 
       // Clean up the temporary app
       await tempApp.delete();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Worker created successfully!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Worker created successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.of(context).pop();
       }
-
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating worker: ${e.message}'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Error creating worker: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An unexpected error occurred: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -124,7 +159,10 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Add New Worker', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Add New Worker',
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -133,10 +171,32 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
           key: _formKey,
           child: Column(
             children: [
-              _buildInputField(_nameController, 'Full Name', Icons.person_outline, validator: (v) => v!.isEmpty ? 'Enter name' : null),
-              _buildInputField(_emailController, 'Email Address', Icons.email_outlined, keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty ? 'Enter email' : null),
-              _buildInputField(_contactController, 'Contact Number', Icons.phone_outlined, keyboardType: TextInputType.phone, validator: (v) => v!.isEmpty ? 'Enter contact' : null),
-              _buildInputField(_passwordController, 'Temporary Password', Icons.lock_outline, validator: (v) => v!.length < 6 ? 'Min 6 characters' : null),
+              _buildInputField(
+                _nameController,
+                'Full Name',
+                Icons.person_outline,
+                validator: (v) => v!.isEmpty ? 'Enter name' : null,
+              ),
+              _buildInputField(
+                _emailController,
+                'Email Address',
+                Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) => v!.isEmpty ? 'Enter email' : null,
+              ),
+              _buildInputField(
+                _contactController,
+                'Contact Number',
+                Icons.phone_outlined,
+                keyboardType: TextInputType.phone,
+                validator: (v) => v!.isEmpty ? 'Enter contact' : null,
+              ),
+              _buildInputField(
+                _passwordController,
+                'Temporary Password',
+                Icons.lock_outline,
+                validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
+              ),
               const SizedBox(height: 20),
               _buildServicesSelection(),
               const SizedBox(height: 30),
@@ -148,7 +208,10 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
                   style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Create Worker', style: TextStyle(color: Colors.white, fontSize: 18)),
+                      : const Text(
+                          'Create Worker',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
                 ),
               ),
             ],
@@ -158,8 +221,14 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
     );
   }
 
-  Widget _buildInputField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType, String? Function(String?)? validator}) {
-     return Padding(
+  Widget _buildInputField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
         controller: controller,
@@ -171,27 +240,39 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
           labelStyle: const TextStyle(color: paleBlue),
           prefixIcon: Icon(icon, color: lightBlue),
           filled: true,
-          fillColor: mediumBlue.withOpacity(0.3),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: grayBlue)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: lightBlue)),
+          fillColor: mediumBlue.withValues(alpha: 0.3),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: grayBlue),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: lightBlue),
+          ),
         ),
       ),
     );
   }
 
-   Widget _buildServicesSelection() {
+  Widget _buildServicesSelection() {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: mediumBlue.withOpacity(0.3),
+        color: mediumBlue.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: grayBlue),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Assign Services', style: TextStyle(color: paleBlue, fontSize: 16)),
+          const Text(
+            'Assign Services',
+            style: TextStyle(color: paleBlue, fontSize: 16),
+          ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -200,12 +281,18 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
               bool isSelected = _selectedServices.contains(service);
               return GestureDetector(
                 onTap: () => setState(() {
-                  isSelected ? _selectedServices.remove(service) : _selectedServices.add(service);
+                  isSelected
+                      ? _selectedServices.remove(service)
+                      : _selectedServices.add(service);
                 }),
                 child: Chip(
                   label: Text(service),
-                  backgroundColor: isSelected ? lightBlue : grayBlue.withOpacity(0.5),
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : paleBlue),
+                  backgroundColor: isSelected
+                      ? lightBlue
+                      : grayBlue.withValues(alpha: 0.5),
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : paleBlue,
+                  ),
                   side: BorderSide.none,
                 ),
               );

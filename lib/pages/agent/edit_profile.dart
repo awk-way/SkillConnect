@@ -16,7 +16,6 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color grayBlue = Color(0xFF82A0BC);
   static const Color paleBlue = Color(0xFFA7CCED);
 
   // --- Form & State ---
@@ -33,9 +32,21 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
   final List<String> _selectedServices = [];
 
   final List<String> _availableServices = [
-    'Plumbing', 'Electrical Work', 'Carpentry', 'Painting', 'Cleaning', 
-    'Gardening', 'Appliance Repair', 'HVAC Services', 'Masonry', 'Roofing',
-    'Pest Control', 'Moving Services', 'Handyman Services', 'Auto Repair', 'Other',
+    'Plumbing',
+    'Electrical Work',
+    'Carpentry',
+    'Painting',
+    'Cleaning',
+    'Gardening',
+    'Appliance Repair',
+    'HVAC Services',
+    'Masonry',
+    'Roofing',
+    'Pest Control',
+    'Moving Services',
+    'Handyman Services',
+    'Auto Repair',
+    'Other',
   ];
 
   @override
@@ -58,8 +69,14 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not found");
 
-      final agentDoc = await FirebaseFirestore.instance.collection('agents').doc(user.uid).get();
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final agentDoc = await FirebaseFirestore.instance
+          .collection('agents')
+          .doc(user.uid)
+          .get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (agentDoc.exists && userDoc.exists && mounted) {
         final agentData = agentDoc.data()!;
@@ -70,17 +87,24 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
         _addressController.text = agentData['address'] ?? '';
         _cityController.text = agentData['city'] ?? '';
         _currentProfilePicUrl = userData['profilePicUrl'];
-        _selectedServices.addAll(List<String>.from(agentData['services'] ?? []));
+        _selectedServices.addAll(
+          List<String>.from(agentData['services'] ?? []),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to load data: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load data: $e")));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-  
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -101,7 +125,10 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
 
       // 1. Upload new image if one was selected
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref().child('profile_pics').child('${user.uid}.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('profile_pics')
+            .child('${user.uid}.jpg');
         await ref.putFile(_imageFile!);
         newProfilePicUrl = await ref.getDownloadURL();
       }
@@ -109,14 +136,18 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
       // 2. Use a batch write to update both documents
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
-      final userDocRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid);
       batch.update(userDocRef, {
         'contact': _contactController.text.trim(),
         'profilePicUrl': newProfilePicUrl,
-        'name': _orgNameController.text.trim(), 
+        'name': _orgNameController.text.trim(),
       });
 
-      final agentDocRef = FirebaseFirestore.instance.collection('agents').doc(user.uid);
+      final agentDocRef = FirebaseFirestore.instance
+          .collection('agents')
+          .doc(user.uid);
       batch.update(agentDocRef, {
         'organisationName': _orgNameController.text.trim(),
         'address': _addressController.text.trim(),
@@ -125,19 +156,21 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
       });
 
       await batch.commit();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profile updated successfully!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile updated successfully!")),
+        );
         Navigator.of(context).pop();
       }
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +178,10 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: darkBlue,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
@@ -164,17 +200,39 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
                   children: [
                     _buildAvatar(),
                     const SizedBox(height: 24),
-                    TextFormField(controller: _orgNameController, decoration: const InputDecoration(labelText: 'Organisation Name')),
+                    TextFormField(
+                      controller: _orgNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Organisation Name',
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _contactController, decoration: const InputDecoration(labelText: 'Contact Number'), keyboardType: TextInputType.phone),
+                    TextFormField(
+                      controller: _contactController,
+                      decoration: const InputDecoration(
+                        labelText: 'Contact Number',
+                      ),
+                      keyboardType: TextInputType.phone,
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Full Address')),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Address',
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    TextFormField(controller: _cityController, decoration: const InputDecoration(labelText: 'City')),
+                    TextFormField(
+                      controller: _cityController,
+                      decoration: const InputDecoration(labelText: 'City'),
+                    ),
                     const SizedBox(height: 24),
                     _buildServicesSelection(),
                     const SizedBox(height: 24),
-                     if (_isSaving) const Center(child: CircularProgressIndicator(color: lightBlue)),
+                    if (_isSaving)
+                      const Center(
+                        child: CircularProgressIndicator(color: lightBlue),
+                      ),
                   ],
                 ),
               ),
@@ -191,10 +249,15 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
             backgroundColor: paleBlue,
             backgroundImage: _imageFile != null
                 ? FileImage(_imageFile!)
-                : (_currentProfilePicUrl != null && _currentProfilePicUrl!.isNotEmpty
-                    ? NetworkImage(_currentProfilePicUrl!)
-                    : null) as ImageProvider?,
-            child: _imageFile == null && (_currentProfilePicUrl == null || _currentProfilePicUrl!.isEmpty)
+                : (_currentProfilePicUrl != null &&
+                              _currentProfilePicUrl!.isNotEmpty
+                          ? NetworkImage(_currentProfilePicUrl!)
+                          : null)
+                      as ImageProvider?,
+            child:
+                _imageFile == null &&
+                    (_currentProfilePicUrl == null ||
+                        _currentProfilePicUrl!.isEmpty)
                 ? const Icon(Icons.business, size: 50, color: darkBlue)
                 : null,
           ),
@@ -209,7 +272,7 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
                 child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -225,7 +288,14 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Update Services', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: darkBlue)),
+          const Text(
+            'Update Services',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: darkBlue,
+            ),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -234,12 +304,18 @@ class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
               bool isSelected = _selectedServices.contains(service);
               return GestureDetector(
                 onTap: () => setState(() {
-                  isSelected ? _selectedServices.remove(service) : _selectedServices.add(service);
+                  isSelected
+                      ? _selectedServices.remove(service)
+                      : _selectedServices.add(service);
                 }),
                 child: Chip(
                   label: Text(service),
-                  backgroundColor: isSelected ? lightBlue : Colors.grey.shade200,
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : darkBlue),
+                  backgroundColor: isSelected
+                      ? lightBlue
+                      : Colors.grey.shade200,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : darkBlue,
+                  ),
                   side: BorderSide.none,
                 ),
               );

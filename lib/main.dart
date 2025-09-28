@@ -4,7 +4,6 @@ import 'package:skillconnect/pages/agent/edit_profile.dart';
 import 'package:skillconnect/pages/agent/home.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
-import 'package:skillconnect/pages/agent/home.dart';
 import 'package:skillconnect/pages/worker/editprofile.dart';
 import 'package:skillconnect/pages/worker/home.dart';
 import 'package:skillconnect/pages/worker/profile.dart';

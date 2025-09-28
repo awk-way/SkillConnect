@@ -55,29 +55,34 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((jobSnapshot) async {
-      List<Future<AgentJob?>> jobFutures = jobSnapshot.docs.map((jobDoc) async {
-        try {
-          final jobData = jobDoc.data();
-          final userDoc = await FirebaseFirestore.instance.collection('users').doc(jobData['userId']).get();
-          
-          if (userDoc.exists) {
-            return AgentJob(
-              id: jobDoc.id,
-              title: jobData['title'] ?? 'No Title',
-              status: jobData['status'] ?? 'Unknown',
-              createdAt: jobData['createdAt'] ?? Timestamp.now(),
-              customerName: userDoc.data()?['name'] ?? 'Unknown Customer',
-            );
-          }
-        } catch (e) {
-          print("Error processing job: $e");
-        }
-        return null;
-      }).toList();
+          List<Future<AgentJob?>> jobFutures = jobSnapshot.docs.map((
+            jobDoc,
+          ) async {
+            try {
+              final jobData = jobDoc.data();
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(jobData['userId'])
+                  .get();
 
-      final jobs = await Future.wait(jobFutures);
-      return jobs.where((job) => job != null).cast<AgentJob>().toList();
-    });
+              if (userDoc.exists) {
+                return AgentJob(
+                  id: jobDoc.id,
+                  title: jobData['title'] ?? 'No Title',
+                  status: jobData['status'] ?? 'Unknown',
+                  createdAt: jobData['createdAt'] ?? Timestamp.now(),
+                  customerName: userDoc.data()?['name'] ?? 'Unknown Customer',
+                );
+              }
+            } catch (e) {
+              print("Error processing job: $e");
+            }
+            return null;
+          }).toList();
+
+          final jobs = await Future.wait(jobFutures);
+          return jobs.where((job) => job != null).cast<AgentJob>().toList();
+        });
   }
 
   @override
@@ -86,7 +91,10 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: darkBlue,
-        title: const Text('Past Jobs', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Past Jobs',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         automaticallyImplyLeading: false,
         // The TabBar has been removed.
       ),
@@ -94,12 +102,16 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
         stream: _jobsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: lightBlue));
+            return const Center(
+              child: CircularProgressIndicator(color: lightBlue),
+            );
           }
           if (snapshot.hasError) {
             // Provide a helpful message if the required index is missing.
-            if (snapshot.error.toString().contains('firestore/failed-precondition')) {
-                 return _buildIndexErrorState();
+            if (snapshot.error.toString().contains(
+              'firestore/failed-precondition',
+            )) {
+              return _buildIndexErrorState();
             }
             return Center(child: Text('An error occurred: ${snapshot.error}'));
           }
@@ -124,7 +136,7 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
       },
     );
   }
-  
+
   Widget _buildJobCard(AgentJob job) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -139,14 +151,27 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(job.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue)),
+                  child: Text(
+                    job.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: darkBlue,
+                    ),
+                  ),
                 ),
                 _buildStatusChip(job.status),
               ],
             ),
             const SizedBox(height: 8),
-            Text("Customer: ${job.customerName}", style: const TextStyle(color: grayBlue)),
-            Text("Date: ${DateFormat('d MMM yyyy, h:mm a').format(job.createdAt.toDate())}", style: const TextStyle(color: grayBlue)),
+            Text(
+              "Customer: ${job.customerName}",
+              style: const TextStyle(color: grayBlue),
+            ),
+            Text(
+              "Date: ${DateFormat('d MMM yyyy, h:mm a').format(job.createdAt.toDate())}",
+              style: const TextStyle(color: grayBlue),
+            ),
           ],
         ),
       ),
@@ -167,8 +192,12 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
     }
     return Chip(
       label: Text(status),
-      backgroundColor: color.withOpacity(0.1),
-      labelStyle: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+      backgroundColor: color.withValues(alpha: 0.1),
+      labelStyle: TextStyle(
+        color: color,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
@@ -179,7 +208,11 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.work_history_outlined, size: 80, color: grayBlue.withOpacity(0.5)),
+          Icon(
+            Icons.work_history_outlined,
+            size: 80,
+            color: grayBlue.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 20),
           Text(
             message,
@@ -193,7 +226,7 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
 
   // A helper widget to guide the user to create the necessary Firestore index.
   Widget _buildIndexErrorState() {
-     return const Center(
+    return const Center(
       child: Padding(
         padding: EdgeInsets.all(24.0),
         child: Column(
@@ -204,7 +237,11 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
             Text(
               'Database Index Required',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             SizedBox(height: 12),
             Text(

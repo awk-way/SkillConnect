@@ -57,7 +57,10 @@ class _JobsPageState extends State<JobsPage> {
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: const Text('My Jobs', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text(
+            'My Jobs',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
           backgroundColor: darkBlue,
           elevation: 0,
           bottom: const TabBar(
@@ -78,7 +81,9 @@ class _JobsPageState extends State<JobsPage> {
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: lightBlue));
+              return const Center(
+                child: CircularProgressIndicator(color: lightBlue),
+              );
             }
             if (snapshot.hasError) {
               return _buildIndexErrorState();
@@ -87,13 +92,25 @@ class _JobsPageState extends State<JobsPage> {
               return _buildEmptyState("You haven't requested any jobs yet.");
             }
 
-            final jobs = snapshot.data!.docs.map((doc) => Job.fromFirestore(doc)).toList();
+            final jobs = snapshot.data!.docs
+                .map((doc) => Job.fromFirestore(doc))
+                .toList();
 
-            final ongoingJobs = jobs.where((job) =>
-                job.status.toLowerCase() != 'completed' && job.status.toLowerCase() != 'cancelled').toList();
-            
-            final pastJobs = jobs.where((job) =>
-                job.status.toLowerCase() == 'completed' || job.status.toLowerCase() == 'cancelled').toList();
+            final ongoingJobs = jobs
+                .where(
+                  (job) =>
+                      job.status.toLowerCase() != 'completed' &&
+                      job.status.toLowerCase() != 'cancelled',
+                )
+                .toList();
+
+            final pastJobs = jobs
+                .where(
+                  (job) =>
+                      job.status.toLowerCase() == 'completed' ||
+                      job.status.toLowerCase() == 'cancelled',
+                )
+                .toList();
 
             return TabBarView(
               children: [
@@ -106,11 +123,14 @@ class _JobsPageState extends State<JobsPage> {
       ),
     );
   }
-  
+
   Widget _buildJobsList(List<Job> jobs, String emptyMessage) {
     if (jobs.isEmpty) {
       return Center(
-        child: Text(emptyMessage, style: const TextStyle(color: grayBlue, fontSize: 16)),
+        child: Text(
+          emptyMessage,
+          style: const TextStyle(color: grayBlue, fontSize: 16),
+        ),
       );
     }
     return ListView.builder(
@@ -121,13 +141,17 @@ class _JobsPageState extends State<JobsPage> {
       },
     );
   }
-  
+
   Widget _buildEmptyState(String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.work_history_outlined, size: 80, color: grayBlue.withOpacity(0.5)),
+          Icon(
+            Icons.work_history_outlined,
+            size: 80,
+            color: grayBlue.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 20),
           Text(
             message,
@@ -140,7 +164,7 @@ class _JobsPageState extends State<JobsPage> {
   }
 
   Widget _buildIndexErrorState() {
-     return const Center(
+    return const Center(
       child: Padding(
         padding: EdgeInsets.all(24.0),
         child: Column(
@@ -151,7 +175,11 @@ class _JobsPageState extends State<JobsPage> {
             Text(
               'Database Index Required',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             SizedBox(height: 12),
             Text(
@@ -189,63 +217,79 @@ class _JobCardState extends State<JobCard> {
 
   Future<void> _fetchNames() async {
     if (widget.job.agentId != null && widget.job.agentId!.isNotEmpty) {
-      final doc = await FirebaseFirestore.instance.collection('agents').doc(widget.job.agentId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('agents')
+          .doc(widget.job.agentId)
+          .get();
       if (doc.exists && mounted) {
         setState(() => _agentName = doc.data()?['orgName'] ?? 'Agent');
       }
     } else {
-       _agentName = 'Not assigned';
+      _agentName = 'Not assigned';
     }
 
     if (widget.job.workerId != null && widget.job.workerId!.isNotEmpty) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(widget.job.workerId).get();
-       if (doc.exists && mounted) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.job.workerId)
+          .get();
+      if (doc.exists && mounted) {
         setState(() => _workerName = doc.data()?['name'] ?? 'Worker');
       }
     }
   }
-  
-void _navigateToChat() {
-  final currentUser = FirebaseAuth.instance.currentUser;
 
-  if (widget.job.workerId == null || _workerName == null || currentUser == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Worker information not available for chat.")),
-    );
-    return;
-  }
+  void _navigateToChat() {
+    final currentUser = FirebaseAuth.instance.currentUser;
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ChatPage(
-        workerId: widget.job.workerId!,
-        userId: currentUser.uid,
-        customerName: _workerName!,
+    if (widget.job.workerId == null ||
+        _workerName == null ||
+        currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Worker information not available for chat."),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatPage(
+          workerId: widget.job.workerId!,
+          userId: currentUser.uid,
+          customerName: _workerName!,
+        ),
       ),
-    ),
-  );
-}
-
-
+    );
+  }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'pending': return Colors.orange;
-      case 'accepted': return Colors.blue;
-      case 'inprogress': return Colors.lightBlue;
-      case 'completed': return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'accepted':
+        return Colors.blue;
+      case 'inprogress':
+        return Colors.lightBlue;
+      case 'completed':
+        return Colors.green;
       case 'cancelled':
       case 'declined':
         return Colors.red;
-      default: return Colors.grey;
+      default:
+        return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // MODIFIED: Chat is now available for 'Accepted' and 'InProgress' statuses
-    final canChat = ['accepted', 'inprogress'].contains(widget.job.status.toLowerCase());
+    final canChat = [
+      'accepted',
+      'inprogress',
+    ].contains(widget.job.status.toLowerCase());
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -262,20 +306,33 @@ void _navigateToChat() {
                 Expanded(
                   child: Text(
                     widget.job.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: darkBlue,
+                    ),
                   ),
                 ),
                 Chip(
                   label: Text(widget.job.status),
-                  backgroundColor: _getStatusColor(widget.job.status).withOpacity(0.1),
-                  labelStyle: TextStyle(color: _getStatusColor(widget.job.status), fontWeight: FontWeight.bold, fontSize: 12),
+                  backgroundColor: _getStatusColor(
+                    widget.job.status,
+                  ).withValues(alpha: 0.1),
+                  labelStyle: TextStyle(
+                    color: _getStatusColor(widget.job.status),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow(Icons.calendar_today_outlined, DateFormat('d MMM yyyy').format(widget.job.createdAt.toDate())),
+            _buildInfoRow(
+              Icons.calendar_today_outlined,
+              DateFormat('d MMM yyyy').format(widget.job.createdAt.toDate()),
+            ),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.person_outline, _agentName ?? 'Loading...'),
             if (canChat) ...[
@@ -291,8 +348,8 @@ void _navigateToChat() {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              )
-            ]
+              ),
+            ],
           ],
         ),
       ),
@@ -309,4 +366,3 @@ void _navigateToChat() {
     );
   }
 }
-

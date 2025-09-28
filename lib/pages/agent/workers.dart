@@ -41,7 +41,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
     super.initState();
     _setupWorkersStream();
   }
-  
+
   void _setupWorkersStream() {
     final agentId = FirebaseAuth.instance.currentUser?.uid;
     if (agentId == null) {
@@ -55,12 +55,17 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
         .snapshots()
         .asyncMap((workerSnapshot) async {
           // For each worker document, fetch the corresponding user document
-          List<Future<Worker?>> workerFutures = workerSnapshot.docs.map((workerDoc) async {
+          List<Future<Worker?>> workerFutures = workerSnapshot.docs.map((
+            workerDoc,
+          ) async {
             try {
               final workerId = workerDoc.id;
               final workerData = workerDoc.data();
 
-              final userDoc = await FirebaseFirestore.instance.collection('users').doc(workerId).get();
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(workerId)
+                  .get();
               if (userDoc.exists) {
                 final userData = userDoc.data()!;
                 return Worker(
@@ -79,9 +84,12 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
 
           // Wait for all the user data to be fetched
           final workers = await Future.wait(workerFutures);
-          
+
           // Filter out any nulls that may have occurred from errors
-          return workers.where((worker) => worker != null).cast<Worker>().toList();
+          return workers
+              .where((worker) => worker != null)
+              .cast<Worker>()
+              .toList();
         });
   }
 
@@ -91,14 +99,19 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: darkBlue,
-        title: const Text('My Workers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'My Workers',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<List<Worker>>(
         stream: _workersStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: lightBlue));
+            return const Center(
+              child: CircularProgressIndicator(color: lightBlue),
+            );
           }
           if (snapshot.hasError) {
             return Center(child: Text('An error occurred: ${snapshot.error}'));
@@ -133,28 +146,51 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
             CircleAvatar(
               radius: 30,
               backgroundColor: paleBlue,
-              backgroundImage: worker.profilePicUrl.isNotEmpty ? NetworkImage(worker.profilePicUrl) : null,
-              child: worker.profilePicUrl.isEmpty ? Text(initial, style: const TextStyle(fontSize: 24, color: darkBlue)) : null,
+              backgroundImage: worker.profilePicUrl.isNotEmpty
+                  ? NetworkImage(worker.profilePicUrl)
+                  : null,
+              child: worker.profilePicUrl.isEmpty
+                  ? Text(
+                      initial,
+                      style: const TextStyle(fontSize: 24, color: darkBlue),
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(worker.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: darkBlue)),
+                  Text(
+                    worker.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: darkBlue,
+                    ),
+                  ),
                   Text(worker.email, style: const TextStyle(color: grayBlue)),
                   const SizedBox(height: 8),
                   if (worker.services.isNotEmpty)
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: worker.services.take(3).map((service) => Chip(
-                        label: Text(service),
-                        backgroundColor: lightBlue.withOpacity(0.1),
-                        labelStyle: const TextStyle(fontSize: 12, color: darkBlue),
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      )).toList(),
+                      children: worker.services
+                          .take(3)
+                          .map(
+                            (service) => Chip(
+                              label: Text(service),
+                              backgroundColor: lightBlue.withValues(alpha: 0.1),
+                              labelStyle: const TextStyle(
+                                fontSize: 12,
+                                color: darkBlue,
+                              ),
+                              padding: EdgeInsets.zero,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          )
+                          .toList(),
                     ),
                 ],
               ),
@@ -170,11 +206,19 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people_outline, size: 80, color: grayBlue.withOpacity(0.5)),
+          Icon(
+            Icons.people_outline,
+            size: 80,
+            color: grayBlue.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 20),
           const Text(
             'No Workers Yet',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkBlue),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: darkBlue,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
