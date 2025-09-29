@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -70,7 +71,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
           .doc(notificationId)
           .update({'status': 'read'});
     } catch (e) {
-      print("Error marking notification as read: $e");
+      if (kDebugMode) {
+        print("Error marking notification as read: $e");
+      }
       // Optionally show a snackbar to the user
     }
   }

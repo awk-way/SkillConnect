@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,10 +25,10 @@ class MyWorkersPage extends StatefulWidget {
   const MyWorkersPage({super.key});
 
   @override
-  _MyWorkersPageState createState() => _MyWorkersPageState();
+  MyWorkersPageState createState() => MyWorkersPageState();
 }
 
-class _MyWorkersPageState extends State<MyWorkersPage> {
+class MyWorkersPageState extends State<MyWorkersPage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -77,7 +78,9 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
                 );
               }
             } catch (e) {
-              print("Error fetching details for a worker: $e");
+              if (kDebugMode) {
+                print("Error fetching details for a worker: $e");
+              }
             }
             return null; // Return null for any worker that fails to load
           }).toList();

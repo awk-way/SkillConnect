@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -83,7 +84,9 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
       }
       return null;
     } catch (e) {
-      print("Error fetching agent details: $e");
+      if (kDebugMode) {
+        print("Error fetching agent details: $e");
+      }
       throw Exception("Failed to load agent details.");
     }
   }

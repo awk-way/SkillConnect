@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -76,7 +77,9 @@ class CustomerHomePageState extends State<CustomerHomePage> {
         });
       }
     } catch (e) {
-      print("Error fetching user data: $e");
+      if (kDebugMode) {
+        print("Error fetching user data: $e");
+      }
     } finally {
       if (mounted) {
         setState(() {

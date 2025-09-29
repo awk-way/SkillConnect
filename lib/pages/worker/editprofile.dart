@@ -9,10 +9,10 @@ class WorkerEditProfilePage extends StatefulWidget {
   const WorkerEditProfilePage({super.key});
 
   @override
-  _WorkerEditProfilePageState createState() => _WorkerEditProfilePageState();
+  WorkerEditProfilePageState createState() => WorkerEditProfilePageState();
 }
 
-class _WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
+class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);

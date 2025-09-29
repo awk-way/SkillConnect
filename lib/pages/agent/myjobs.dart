@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,10 +26,10 @@ class AgentJobsPage extends StatefulWidget {
   const AgentJobsPage({super.key});
 
   @override
-  _AgentJobsPageState createState() => _AgentJobsPageState();
+  AgentJobsPageState createState() => AgentJobsPageState();
 }
 
-class _AgentJobsPageState extends State<AgentJobsPage> {
+class AgentJobsPageState extends State<AgentJobsPage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -75,7 +76,9 @@ class _AgentJobsPageState extends State<AgentJobsPage> {
                 );
               }
             } catch (e) {
-              print("Error processing job: $e");
+              if (kDebugMode) {
+                print("Error processing job: $e");
+              }
             }
             return null;
           }).toList();

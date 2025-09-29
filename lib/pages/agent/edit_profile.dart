@@ -9,10 +9,10 @@ class AgentEditProfilePage extends StatefulWidget {
   const AgentEditProfilePage({super.key});
 
   @override
-  _AgentEditProfilePageState createState() => _AgentEditProfilePageState();
+  AgentEditProfilePageState createState() => AgentEditProfilePageState();
 }
 
-class _AgentEditProfilePageState extends State<AgentEditProfilePage> {
+class AgentEditProfilePageState extends State<AgentEditProfilePage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);

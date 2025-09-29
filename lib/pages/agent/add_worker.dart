@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,10 +9,10 @@ class AddWorkerPage extends StatefulWidget {
   const AddWorkerPage({super.key});
 
   @override
-  _AddWorkerPageState createState() => _AddWorkerPageState();
+  AddWorkerPageState createState() => AddWorkerPageState();
 }
 
-class _AddWorkerPageState extends State<AddWorkerPage> {
+class AddWorkerPageState extends State<AddWorkerPage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color mediumBlue = Color(0xFF545E75);

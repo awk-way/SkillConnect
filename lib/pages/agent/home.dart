@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -108,7 +109,9 @@ class _AgentDashboardState extends State<AgentDashboard> {
         );
       }
     } catch (e) {
-      print('Error fetching agent data: $e');
+      if (kDebugMode) {
+        print('Error fetching agent data: $e');
+      }
     }
     return null;
   }
@@ -634,8 +637,9 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
           .collection('users')
           .doc(widget.jobData['userId'])
           .get();
-      if (customerDoc.exists)
+      if (customerDoc.exists) {
         _customerName = customerDoc.data()?['name'] ?? 'Customer';
+      }
 
       final workerDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -645,7 +649,9 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
 
       if (mounted) setState(() {});
     } catch (e) {
-      print("Error fetching names for active job card: $e");
+      if (kDebugMode) {
+        print("Error fetching names for active job card: $e");
+      }
     }
   }
 
