@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,10 +24,10 @@ class MyWorkersPage extends StatefulWidget {
   const MyWorkersPage({super.key});
 
   @override
-  MyWorkersPageState createState() => MyWorkersPageState();
+  _MyWorkersPageState createState() => _MyWorkersPageState();
 }
 
-class MyWorkersPageState extends State<MyWorkersPage> {
+class _MyWorkersPageState extends State<MyWorkersPage> {
   // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -78,9 +77,7 @@ class MyWorkersPageState extends State<MyWorkersPage> {
                 );
               }
             } catch (e) {
-              if (kDebugMode) {
-                print("Error fetching details for a worker: $e");
-              }
+              print("Error fetching details for a worker: $e");
             }
             return null; // Return null for any worker that fails to load
           }).toList();
@@ -108,8 +105,8 @@ class MyWorkersPageState extends State<MyWorkersPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: StreamBuilder<List<Worker>>(
-        stream: _workersStream,
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('workers').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -119,16 +116,32 @@ class MyWorkersPageState extends State<MyWorkersPage> {
           if (snapshot.hasError) {
             return Center(child: Text('An error occurred: ${snapshot.error}'));
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (!snapshot.hasData) {
             return _buildEmptyState();
           }
 
-          final workers = snapshot.data!;
+          final workers = snapshot.data!.docs;
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
             itemCount: workers.length,
             itemBuilder: (context, index) {
-              return _buildWorkerCard(workers[index]);
+              Worker worker = Worker(
+                id: workers[index].id,
+                name: workers[index].data()['name'] ?? 'No Name',
+                email: workers[index].data()['email'] ?? 'No Email',
+                profilePicUrl: workers[index].data()['profilePicUrl'] ?? '',
+                services: List<String>.from(
+                  workers[index].data()['services'] ?? [],
+                ),
+              );
+              if (workers[index].data()['agentId'] !=
+                  FirebaseAuth.instance.currentUser?.uid.toString()) {
+                print(
+                  '${workers[index].data()['agentId'].toString()} == ${FirebaseAuth.instance.currentUser?.uid.toString()}',
+                );
+                return Container();
+              }
+              return _buildWorkerCard(worker);
             },
           );
         },

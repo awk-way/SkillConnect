@@ -38,6 +38,7 @@ class SkillConnectApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Roboto',
       ),
+      debugShowCheckedModeBanner: false,
       home: LoginScreen(),
       routes: {
         '/signup/login': (context) => LoginScreen(),

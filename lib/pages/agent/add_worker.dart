@@ -114,6 +114,9 @@ class AddWorkerPageState extends State<AddWorkerPage> {
       batch.set(
         FirebaseFirestore.instance.collection('workers').doc(newWorkerUid),
         {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'contact': _contactController.text.trim(),
           'agentId': agentUid,
           'availability': true,
           'rating': 0.0,
