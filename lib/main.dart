@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:skillconnect/pages/agent/edit_profile.dart';
 import 'package:skillconnect/pages/agent/home.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
+import 'package:skillconnect/pages/customer/details.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
 import 'package:skillconnect/pages/worker/editprofile.dart';
 import 'package:skillconnect/pages/worker/home.dart';
@@ -47,6 +48,8 @@ class SkillConnectApp extends StatelessWidget {
         '/signup/wsignup': (context) => AgentSignUpScreen(),
         '/customer/home': (context) => CustomerHomePage(),
         '/customer/services': (context) => SelectService(),
+        '/customer/details': (context) =>
+            JobDetailsPage(agentId: '', selectedService: ''),
         '/customer/profile': (context) => CustomerProfile(),
         '/agent/home': (context) => AgentHomePage(),
         '/agent/profile': (context) => AgentProfilePage(),

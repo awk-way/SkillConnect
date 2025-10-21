@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'details.dart';
 
 class AgentDetails {
   final String orgName;
@@ -124,26 +125,28 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
 
     if (!confirm) return;
 
+    // Show loading dialog
     showDialog(
       context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      await FirebaseFirestore.instance.collection('jobs').add({
-        'userId': currentUser.uid,
-        'agentId': widget.agentId,
-        'title': widget.selectedService,
-        'status': 'Pending',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      // Delay to simulate backend processing (optional)
+      await Future.delayed(const Duration(milliseconds: 500));
 
+      // Close loading dialog
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request sent successfully!'),
-          backgroundColor: Colors.green,
+
+      // Navigate to job details page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => JobDetailsPage(
+            agentId: widget.agentId,
+            selectedService: widget.selectedService,
+          ),
         ),
       );
     } catch (e) {
