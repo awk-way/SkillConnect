@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CustomerSettingsPage extends StatefulWidget {
-  const CustomerSettingsPage({super.key});
+class AgentSettingsPage extends StatefulWidget {
+  const AgentSettingsPage({super.key});
 
   @override
-  State<CustomerSettingsPage> createState() => _CustomerSettingsPageState();
+  State<AgentSettingsPage> createState() => _AgentSettingsPageState();
 }
 
-class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
+class _AgentSettingsPageState extends State<AgentSettingsPage> {
   bool _notificationsEnabled = true;
   final _auth = FirebaseAuth.instance;
 
@@ -22,7 +22,8 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
   Future<void> _loadNotificationPreference() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+      _notificationsEnabled =
+          prefs.getBool('agentNotificationsEnabled') ?? true;
     });
   }
 
@@ -31,7 +32,7 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
     setState(() {
       _notificationsEnabled = value;
     });
-    await prefs.setBool('notificationsEnabled', value);
+    await prefs.setBool('agentNotificationsEnabled', value);
   }
 
   Future<void> _changePassword() async {
@@ -152,20 +153,20 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
             ),
           ),
           _buildFAQ(
-            "How do I book a service?",
-            "Go to the Home tab, choose a category, and post your job request.",
+            "How do I accept a job?",
+            "Go to your Home tab, view new job requests, and tap Accept to start.",
           ),
           _buildFAQ(
-            "Can I edit my posted job?",
-            "Yes, you can edit your job details before an agent accepts it.",
+            "Can I reject a job?",
+            "Yes, you can reject a job if you are unavailable.",
           ),
           _buildFAQ(
-            "How are agents verified?",
-            "All agents are verified by SkillConnect through ID and skill proof before listing.",
+            "How do I update my availability?",
+            "Go to the Profile or Availability section to set your working hours.",
           ),
           _buildFAQ(
-            "Can I report an issue?",
-            "Yes, you can report problems from the Support or Contact Us section.",
+            "Can I report a customer?",
+            "Yes, use the Support section to report any issues.",
           ),
         ],
       ),

@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
 
-class WorkerHelpSupportPage extends StatefulWidget {
-  const WorkerHelpSupportPage({super.key});
+class AgentHelpSupportPage extends StatefulWidget {
+  const AgentHelpSupportPage({super.key});
 
   @override
-  State<WorkerHelpSupportPage> createState() => _WorkerHelpSupportPageState();
+  State<AgentHelpSupportPage> createState() => _AgentHelpSupportPageState();
 }
 
-class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
+class _AgentHelpSupportPageState extends State<AgentHelpSupportPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
 
-  // Sample FAQs for Workers
+  // Sample FAQs for Agents
   final List<Map<String, String>> faqs = [
     {
-      'question': 'How do I receive job requests?',
+      'question': 'How do I accept a job request?',
       'answer':
-          'Job requests appear on your dashboard. You can accept or decline them.',
+          'Go to your Jobs tab and tap on a job to view details and accept it.',
     },
     {
-      'question': 'How can I update my skills or services?',
+      'question': 'How can I manage my availability?',
       'answer':
-          'Go to the Profile page and tap "Edit Profile" to update your skills or services.',
+          'Update your availability from the Profile page under "Manage Availability".',
     },
     {
-      'question': 'How can I withdraw earnings?',
-      'answer':
-          'Earnings can be withdrawn from the Wallet section in your dashboard.',
+      'question': 'How is my rating calculated?',
+      'answer': 'Your rating is based on completed jobs and customer reviews.',
     },
   ];
 
@@ -55,7 +54,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Help & Support'),
-        backgroundColor: Colors.orange, // Distinct color for workers
+        backgroundColor: Colors.green, // Different color for agent
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -127,7 +126,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
                     child: ElevatedButton(
                       onPressed: _submitQuery,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange, // Match worker theme
+                        backgroundColor: Colors.green, // Match agent theme
                       ),
                       child: const Text('Submit'),
                     ),

@@ -131,12 +131,16 @@ class CustomerProfileState extends State<CustomerProfile> {
                     _buildOptionTile(
                       Icons.settings_outlined,
                       'Settings',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, '/customer/settings');
+                      },
                     ),
                     _buildOptionTile(
                       Icons.help_outline,
                       'Help & Support',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, '/customer/help');
+                      },
                     ),
                     _buildOptionTile(
                       Icons.logout,

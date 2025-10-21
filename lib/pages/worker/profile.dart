@@ -144,8 +144,13 @@ class WorkerProfilePageState extends State<WorkerProfilePage> {
               Navigator.of(context).pushNamed('/worker/editprofile');
             },
           ),
-          _buildOptionTile(Icons.settings, 'Settings'),
-          _buildOptionTile(Icons.help_outline, 'Help & Support'),
+          _buildOptionTile(
+            Icons.help_outline,
+            'Help & Support',
+            onTap: () {
+              Navigator.of(context).pushNamed('/worker/help');
+            },
+          ),
           _buildOptionTile(
             Icons.logout,
             'Logout',

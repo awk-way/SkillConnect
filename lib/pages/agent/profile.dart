@@ -173,8 +173,20 @@ class AgentProfilePageState extends State<AgentProfilePage> {
               ).then((_) => _fetchAgentData());
             },
           ),
-          _buildOptionTile(Icons.settings, 'Settings'),
-          _buildOptionTile(Icons.help_outline, 'Help & Support'),
+          _buildOptionTile(
+            Icons.settings,
+            'Settings',
+            onTap: () {
+              Navigator.pushNamed(context, '/agent/settings');
+            },
+          ),
+          _buildOptionTile(
+            Icons.help_outline,
+            'Help & Support',
+            onTap: () {
+              Navigator.pushNamed(context, '/agent/help');
+            },
+          ),
           _buildOptionTile(
             Icons.logout,
             'Logout',
