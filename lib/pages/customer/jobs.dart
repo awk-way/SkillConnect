@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:skillconnect/pages/chatpage.dart';
+import 'package:skillconnect/pages/customer/review.dart';
 
 class Job {
   final String id;
@@ -42,7 +43,6 @@ class JobsPage extends StatefulWidget {
 }
 
 class _JobsPageState extends State<JobsPage> {
-  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -52,7 +52,7 @@ class _JobsPageState extends State<JobsPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3, // ✅ 3 categories
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
@@ -69,7 +69,8 @@ class _JobsPageState extends State<JobsPage> {
             unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: 'Ongoing'),
-              Tab(text: 'Past'),
+              Tab(text: 'Pending'),
+              Tab(text: 'Completed'),
             ],
           ),
         ),
@@ -96,26 +97,28 @@ class _JobsPageState extends State<JobsPage> {
                 .map((doc) => Job.fromFirestore(doc))
                 .toList();
 
+            // ✅ Categorization
             final ongoingJobs = jobs
                 .where(
                   (job) =>
-                      job.status.toLowerCase() != 'completed' &&
-                      job.status.toLowerCase() != 'cancelled',
+                      job.status.toLowerCase() == 'inprogress' ||
+                      job.status.toLowerCase() == 'accepted',
                 )
                 .toList();
 
-            final pastJobs = jobs
-                .where(
-                  (job) =>
-                      job.status.toLowerCase() == 'completed' ||
-                      job.status.toLowerCase() == 'cancelled',
-                )
+            final pendingJobs = jobs
+                .where((job) => job.status.toLowerCase() == 'pending')
+                .toList();
+
+            final completedJobs = jobs
+                .where((job) => job.status.toLowerCase() == 'completed')
                 .toList();
 
             return TabBarView(
               children: [
                 _buildJobsList(ongoingJobs, 'No ongoing jobs found.'),
-                _buildJobsList(pastJobs, 'No past jobs found.'),
+                _buildJobsList(pendingJobs, 'No pending jobs found.'),
+                _buildJobsList(completedJobs, 'No completed jobs found.'),
               ],
             );
           },
@@ -205,6 +208,7 @@ class JobCard extends StatefulWidget {
 class _JobCardState extends State<JobCard> {
   String? _agentName;
   String? _workerName;
+
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color grayBlue = Color(0xFF82A0BC);
   static const Color lightBlue = Color(0xFF63ADF2);
@@ -265,6 +269,20 @@ class _JobCardState extends State<JobCard> {
     );
   }
 
+  void _navigateToReview() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReviewPage(
+          jobId: widget.job.id,
+          workerId: widget.job.workerId!,
+          workerName: _workerName ?? 'Worker',
+          agentId: '',
+        ),
+      ),
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -285,11 +303,13 @@ class _JobCardState extends State<JobCard> {
 
   @override
   Widget build(BuildContext context) {
-    // MODIFIED: Chat is now available for 'Accepted' and 'InProgress' statuses
     final canChat = [
       'accepted',
       'inprogress',
     ].contains(widget.job.status.toLowerCase());
+
+    final isCompleted =
+        widget.job.status.toLowerCase() == 'completed'; // ✅ For review button
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -346,6 +366,21 @@ class _JobCardState extends State<JobCard> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: lightBlue,
                     foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+            if (isCompleted) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _navigateToReview,
+                  icon: const Icon(Icons.rate_review_outlined, size: 18),
+                  label: const Text('Provide a Review'),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: lightBlue),
+                    foregroundColor: lightBlue,
                   ),
                 ),
               ),
