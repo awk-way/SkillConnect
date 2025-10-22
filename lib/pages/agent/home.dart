@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/agent/chat.dart';
 import 'package:skillconnect/pages/agent/myjobs.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
 import 'package:skillconnect/pages/agent/workers.dart';
@@ -624,6 +625,7 @@ class ActiveJobCard extends StatefulWidget {
 class _ActiveJobCardState extends State<ActiveJobCard> {
   String _customerName = '...';
   String _workerName = '...';
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -633,6 +635,7 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
 
   Future<void> _fetchNames() async {
     try {
+      // Fetch customer name
       final customerDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.jobData['userId'])
@@ -641,63 +644,110 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
         _customerName = customerDoc.data()?['name'] ?? 'Customer';
       }
 
-      final workerDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.jobData['workerId'])
-          .get();
-      if (workerDoc.exists) _workerName = workerDoc.data()?['name'] ?? 'Worker';
-
-      if (mounted) setState(() {});
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error fetching names for active job card: $e");
+      // Fetch worker name
+      final workerId = widget.jobData['workerId'];
+      if (workerId != null) {
+        final workerDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(workerId)
+            .get();
+        if (workerDoc.exists) {
+          _workerName = workerDoc.data()?['name'] ?? 'Worker';
+        }
       }
+
+      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      if (kDebugMode) print("Error fetching names: $e");
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _openChat() {
+    final agentId = FirebaseAuth.instance.currentUser!.uid;
+    final workerId = widget.jobData['workerId'];
+    if (workerId == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AgentWorkerChatPage(
+          agentId: agentId,
+          workerId: workerId,
+          workerName: _workerName,
+          jobId: widget.jobData['id'] ?? widget.jobData['jobId'] ?? '',
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final title = widget.jobData['title'] ?? 'No Title';
     final status = widget.jobData['status'] ?? 'Unknown';
+    final workerId = widget.jobData['workerId'];
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Chip(
-                  label: Text(status),
-                  backgroundColor: status == 'Accepted'
-                      ? Colors.blue.withValues(alpha: 0.1)
-                      : Colors.green.withValues(alpha: 0.1),
-                  labelStyle: TextStyle(
-                    color: status == 'Accepted' ? Colors.blue : Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            const Divider(height: 16),
-            Text("Customer: $_customerName"),
-            Text("Assigned to: $_workerName"),
-          ],
-        ),
-      ),
-    );
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- Job title and status ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Chip(
+                        label: Text(status),
+                        backgroundColor: status == 'Accepted'
+                            ? Colors.blue.withOpacity(0.1)
+                            : Colors.green.withOpacity(0.1),
+                        labelStyle: TextStyle(
+                          color: status == 'Accepted'
+                              ? Colors.blue
+                              : Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 16),
+                  Text("Customer: $_customerName"),
+                  Text("Assigned to: $_workerName"),
+                  const SizedBox(height: 8),
+
+                  // --- Chat Button (Agent → Worker) ---
+                  if ((status == 'Accepted' || status == 'InProgress') &&
+                      workerId != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        label: const Text("Chat with Worker"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF63ADF2),
+                        ),
+                        onPressed: _openChat,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
   }
 }
 
