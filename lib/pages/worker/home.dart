@@ -16,8 +16,6 @@ class WorkerHomePage extends StatefulWidget {
 class _WorkerHomePageState extends State<WorkerHomePage> {
   int _currentIndex = 0;
 
-  static const Color darkBlue = Color(0xFF304D6D);
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [

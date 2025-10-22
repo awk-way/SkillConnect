@@ -199,7 +199,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
                           .map(
                             (service) => Chip(
                               label: Text(service),
-                              backgroundColor: lightBlue.withOpacity(0.1),
+                              backgroundColor: lightBlue.withValues(alpha: 0.1),
                               labelStyle: const TextStyle(
                                 fontSize: 12,
                                 color: darkBlue,
@@ -228,7 +228,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
           Icon(
             Icons.people_outline,
             size: 80,
-            color: grayBlue.withOpacity(0.5),
+            color: grayBlue.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 20),
           const Text(

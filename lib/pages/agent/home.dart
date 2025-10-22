@@ -714,8 +714,8 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
                       Chip(
                         label: Text(status),
                         backgroundColor: status == 'Accepted'
-                            ? Colors.blue.withOpacity(0.1)
-                            : Colors.green.withOpacity(0.1),
+                            ? Colors.blue.withValues(alpha: 0.1)
+                            : Colors.green.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                           color: status == 'Accepted'
                               ? Colors.blue

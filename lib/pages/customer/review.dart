@@ -255,12 +255,16 @@ class _ReviewPageState extends State<ReviewPage> {
                   maxLines: 5,
                   decoration: InputDecoration(
                     hintText: 'Write your review (optional)',
-                    hintStyle: TextStyle(color: grayBlue.withOpacity(0.7)),
+                    hintStyle: TextStyle(
+                      color: grayBlue.withValues(alpha: 0.7),
+                    ),
                     filled: true,
-                    fillColor: paleBlue.withOpacity(0.1),
+                    fillColor: paleBlue.withValues(alpha: 0.1),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: grayBlue.withOpacity(0.5)),
+                      borderSide: BorderSide(
+                        color: grayBlue.withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
                 ),

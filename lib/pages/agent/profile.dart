@@ -73,21 +73,6 @@ class AgentProfilePageState extends State<AgentProfilePage> {
     }
   }
 
-  Future<void> _handleLogout() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/welcome', (route) => false);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error logging out: $e");
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

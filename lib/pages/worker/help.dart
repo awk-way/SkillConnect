@@ -80,7 +80,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
               itemCount: faqs.length,
               itemBuilder: (context, index) {
                 return Card(
-                  color: grayBlue.withOpacity(0.2),
+                  color: grayBlue.withValues(alpha: 0.2),
                   margin: const EdgeInsets.symmetric(vertical: 5),
                   child: ExpansionTile(
                     title: Text(
