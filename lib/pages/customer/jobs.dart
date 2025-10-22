@@ -52,7 +52,7 @@ class _JobsPageState extends State<JobsPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3, // ✅ 3 categories
+      length: 3,
       child: Scaffold(
         backgroundColor: Colors.grey[50],
         appBar: AppBar(
@@ -97,7 +97,6 @@ class _JobsPageState extends State<JobsPage> {
                 .map((doc) => Job.fromFirestore(doc))
                 .toList();
 
-            // ✅ Categorization
             final ongoingJobs = jobs
                 .where(
                   (job) =>
@@ -208,6 +207,7 @@ class JobCard extends StatefulWidget {
 class _JobCardState extends State<JobCard> {
   String? _agentName;
   String? _workerName;
+  bool _hasReview = false; // ✅ Track if review exists
 
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -217,6 +217,7 @@ class _JobCardState extends State<JobCard> {
   void initState() {
     super.initState();
     _fetchNames();
+    _checkIfReviewExists();
   }
 
   Future<void> _fetchNames() async {
@@ -239,6 +240,22 @@ class _JobCardState extends State<JobCard> {
           .get();
       if (doc.exists && mounted) {
         setState(() => _workerName = doc.data()?['name'] ?? 'Worker');
+      }
+    }
+  }
+
+  Future<void> _checkIfReviewExists() async {
+    if (widget.job.workerId != null) {
+      final reviewDoc = await FirebaseFirestore.instance
+          .collection('reviews')
+          .where('jobId', isEqualTo: widget.job.id)
+          .where('workerId', isEqualTo: widget.job.workerId)
+          .get();
+
+      if (mounted && reviewDoc.docs.isNotEmpty) {
+        setState(() {
+          _hasReview = true;
+        });
       }
     }
   }
@@ -277,7 +294,7 @@ class _JobCardState extends State<JobCard> {
           jobId: widget.job.id,
           workerId: widget.job.workerId!,
           workerName: _workerName ?? 'Worker',
-          agentId: '',
+          isEditing: _hasReview, // optional: handle edit mode in ReviewPage
         ),
       ),
     );
@@ -377,7 +394,9 @@ class _JobCardState extends State<JobCard> {
                 child: OutlinedButton.icon(
                   onPressed: _navigateToReview,
                   icon: const Icon(Icons.rate_review_outlined, size: 18),
-                  label: const Text('Provide a Review'),
+                  label: Text(
+                    _hasReview ? 'Edit your Review' : 'Provide a Review',
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: lightBlue),
                     foregroundColor: lightBlue,
