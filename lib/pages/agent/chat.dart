@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AgentWorkerChatPage extends StatefulWidget {
   final String agentId;
   final String workerId;
   final String workerName;
-  final String jobId;
 
   const AgentWorkerChatPage({
     super.key,
     required this.agentId,
     required this.workerId,
     required this.workerName,
-    required this.jobId,
   });
 
   @override
@@ -21,29 +20,41 @@ class AgentWorkerChatPage extends StatefulWidget {
 
 class _AgentWorkerChatPageState extends State<AgentWorkerChatPage> {
   final TextEditingController _controller = TextEditingController();
+  late String chatId;
 
-  Stream<QuerySnapshot> get _messagesStream {
-    return FirebaseFirestore.instance
-        .collection('agent_worker_chats')
-        .doc(widget.jobId)
-        .collection('messages')
-        .orderBy('timestamp', descending: true)
-        .snapshots();
+  @override
+  void initState() {
+    super.initState();
+    // Sorting ensures the chatId is always consistent for this pair
+    final ids = [widget.agentId, widget.workerId]..sort();
+    chatId = ids.join("_");
   }
 
-  void _sendMessage() async {
+  Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    await FirebaseFirestore.instance
-        .collection('agent_worker_chats')
-        .doc(widget.jobId)
-        .collection('messages')
-        .add({
-          'senderId': widget.agentId,
-          'text': text,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return;
+
+    final chatDocRef = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId);
+    final messageCollectionRef = chatDocRef.collection('messages');
+
+    // Update chat metadata (participants, last message)
+    await chatDocRef.set({
+      'participants': [widget.agentId, widget.workerId],
+      'lastMessage': text,
+      'lastMessageTimestamp': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    // Add the actual message
+    await messageCollectionRef.add({
+      'senderId': currentUserId,
+      'text': text,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
 
     _controller.clear();
   }
@@ -51,38 +62,61 @@ class _AgentWorkerChatPageState extends State<AgentWorkerChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.workerName)),
+      appBar: AppBar(
+        title: Text("Chat with ${widget.workerName}"),
+        backgroundColor: const Color(0xFF304D6D),
+        foregroundColor: Colors.white,
+      ),
       body: Column(
         children: [
+          // Messages list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _messagesStream,
+              stream: FirebaseFirestore.instance
+                  .collection('chats')
+                  .doc(chatId)
+                  .collection('messages')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                if (!snapshot.hasData) return const SizedBox.shrink();
 
-                final messages = snapshot.data!.docs;
+                final docs = snapshot.data!.docs;
 
                 return ListView.builder(
                   reverse: true,
-                  itemCount: messages.length,
+                  itemCount: docs.length,
                   itemBuilder: (context, index) {
-                    final msg = messages[index];
-                    final isMe = msg['senderId'] == widget.agentId;
+                    final msg = docs[index].data() as Map<String, dynamic>;
+                    final isMe =
+                        msg['senderId'] ==
+                        FirebaseAuth.instance.currentUser?.uid;
 
                     return Align(
                       alignment: isMe
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.all(6),
-                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 8,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 14,
+                        ),
                         decoration: BoxDecoration(
-                          color: isMe ? Colors.blue[200] : Colors.grey[300],
+                          color: isMe
+                              ? const Color(0xFF63ADF2)
+                              : Colors.grey[300],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(msg['text']),
+                        child: Text(
+                          msg['text'] ?? '',
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black87,
+                          ),
+                        ),
                       ),
                     );
                   },
@@ -90,24 +124,35 @@ class _AgentWorkerChatPageState extends State<AgentWorkerChatPage> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message',
-                      border: OutlineInputBorder(),
+
+          // Input field
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        hintText: "Type a message...",
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Color(0xFF304D6D)),
+                    onPressed: _sendMessage,
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -675,7 +675,6 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
           agentId: agentId,
           workerId: workerId,
           workerName: _workerName,
-          jobId: widget.jobData['id'] ?? widget.jobData['jobId'] ?? '',
         ),
       ),
     );

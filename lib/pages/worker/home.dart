@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/agent/chat.dart';
 import 'package:skillconnect/pages/chatpage.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 
@@ -21,7 +22,7 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const WorkerDashboard(),
-      _buildPlaceholderPage('My Jobs', Icons.work_history_outlined),
+      const WorkerChatPage(), // Chat with Agent
       const WorkerProfilePage(),
     ];
 
@@ -40,9 +41,9 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.work_history_outlined),
-            activeIcon: Icon(Icons.work_history),
-            label: 'Jobs',
+            icon: Icon(Icons.chat_outlined),
+            activeIcon: Icon(Icons.chat),
+            label: 'Chat',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -53,35 +54,9 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
       ),
     );
   }
-
-  Widget _buildPlaceholderPage(String title, IconData icon) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: darkBlue,
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 80, color: const Color(0xFF63ADF2)),
-            const SizedBox(height: 20),
-            Text(
-              '$title Page',
-              style: const TextStyle(fontSize: 24, color: darkBlue),
-            ),
-            const Text(
-              'Coming Soon!',
-              style: TextStyle(color: Color(0xFF82A0BC)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
+// --- Worker Dashboard ---
 class WorkerDashboard extends StatefulWidget {
   const WorkerDashboard({super.key});
 
@@ -90,7 +65,6 @@ class WorkerDashboard extends StatefulWidget {
 }
 
 class _WorkerDashboardState extends State<WorkerDashboard> {
-  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -232,7 +206,7 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
                 final doc = snapshot.data!.docs[index];
                 return NewJobCard(
                   jobData: doc.data() as Map<String, dynamic>,
-                  jobId: doc.id, // <-- Pass document ID here
+                  jobId: doc.id,
                 );
               },
             );
@@ -243,9 +217,10 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
   }
 }
 
+// --- Job Card ---
 class NewJobCard extends StatefulWidget {
   final Map<String, dynamic> jobData;
-  final String jobId; // <-- Added this
+  final String jobId;
 
   const NewJobCard({super.key, required this.jobData, required this.jobId});
 
@@ -310,17 +285,25 @@ class _NewJobCardState extends State<NewJobCard> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatPage(
-                          workerId: widget.jobData['workerId'],
-                          userId: widget.jobData['userId'],
-                          customerName: _customerName,
+                  onPressed: () async {
+                    // Fetch agentId from worker document
+                    final workerDoc = await FirebaseFirestore.instance
+                        .collection('workers')
+                        .doc(widget.jobData['workerId'])
+                        .get();
+                    final agentId = workerDoc.data()?['agentId'];
+                    if (agentId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChatPage(
+                            workerId: widget.jobData['workerId'],
+                            userId: widget.jobData['userId'],
+                            customerName: _customerName,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF63ADF2),
@@ -336,9 +319,8 @@ class _NewJobCardState extends State<NewJobCard> {
                     try {
                       await FirebaseFirestore.instance
                           .collection('jobs')
-                          .doc(widget.jobId) // <-- Use correct jobId
+                          .doc(widget.jobId)
                           .update({'status': 'Completed'});
-
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -367,6 +349,52 @@ class _NewJobCardState extends State<NewJobCard> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// --- Worker Chat Page (Persistent with Agent) ---
+class WorkerChatPage extends StatefulWidget {
+  const WorkerChatPage({super.key});
+
+  @override
+  State<WorkerChatPage> createState() => _WorkerChatPageState();
+}
+
+class _WorkerChatPageState extends State<WorkerChatPage> {
+  final String? workerId = FirebaseAuth.instance.currentUser?.uid;
+  String? agentId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAgentId();
+  }
+
+  Future<void> _fetchAgentId() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('workers')
+        .doc(workerId)
+        .get();
+    if (doc.exists) {
+      setState(() {
+        agentId = doc.data()?['agentId'];
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (agentId == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF63ADF2)),
+      );
+    }
+
+    return AgentWorkerChatPage(
+      agentId: agentId!,
+      workerId: workerId!,
+      workerName: 'Agent',
     );
   }
 }
