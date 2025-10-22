@@ -230,7 +230,10 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final doc = snapshot.data!.docs[index];
-                return NewJobCard(jobData: doc.data() as Map<String, dynamic>);
+                return NewJobCard(
+                  jobData: doc.data() as Map<String, dynamic>,
+                  jobId: doc.id, // <-- Pass document ID here
+                );
               },
             );
           },
@@ -242,7 +245,9 @@ class _WorkerDashboardState extends State<WorkerDashboard> {
 
 class NewJobCard extends StatefulWidget {
   final Map<String, dynamic> jobData;
-  const NewJobCard({super.key, required this.jobData});
+  final String jobId; // <-- Added this
+
+  const NewJobCard({super.key, required this.jobData, required this.jobId});
 
   @override
   State<NewJobCard> createState() => _NewJobCardState();
@@ -322,6 +327,38 @@ class _NewJobCardState extends State<NewJobCard> {
                   ),
                   child: const Text(
                     "Chat",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('jobs')
+                          .doc(widget.jobId) // <-- Use correct jobId
+                          .update({'status': 'Completed'});
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Job marked as completed!'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text(
+                    "Mark Completed",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
