@@ -33,18 +33,21 @@ class AddWorkerPageState extends State<AddWorkerPage> {
     'Plumbing',
     'Electrical Work',
     'Carpentry',
+    'AC Repair',
+    'Washing Machine Repair',
+    'Refrigerator Repair',
+    'RO Water Purifier Repair',
+    'Microwave Repair',
+    'Geyser Repair',
+    'Chimney & Hob Repair',
     'Painting',
     'Cleaning',
-    'Gardening',
-    'Appliance Repair',
-    'HVAC Services',
-    'Masonry',
-    'Roofing',
     'Pest Control',
+    'Bathroom Cleaning',
+    'Kitchen Cleaning',
+    'Carpet Cleaning',
+    'Car Cleaning',
     'Moving Services',
-    'Handyman Services',
-    'Auto Repair',
-    'Other',
   ];
 
   @override
@@ -291,13 +294,11 @@ class AddWorkerPageState extends State<AddWorkerPage> {
                       : _selectedServices.add(service);
                 }),
                 child: Chip(
-                  label: Text(service),
-                  backgroundColor: isSelected
-                      ? lightBlue
-                      : grayBlue.withValues(alpha: 0.5),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : paleBlue,
+                  label: Text(
+                    service,
+                    style: const TextStyle(color: Colors.white),
                   ),
+                  backgroundColor: isSelected ? mediumBlue : grayBlue,
                   side: BorderSide.none,
                 ),
               );
