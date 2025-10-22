@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:skillconnect/pages/agent/chat.dart'; // Make sure this page exists
 
 // --- Data Model for a Worker ---
 class Worker {
@@ -28,7 +29,6 @@ class MyWorkersPage extends StatefulWidget {
 }
 
 class _MyWorkersPageState extends State<MyWorkersPage> {
-  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -44,17 +44,13 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
 
   void _setupWorkersStream() {
     final agentId = FirebaseAuth.instance.currentUser?.uid;
-    if (agentId == null) {
-      // Handle the case where the agent is not logged in
-      return;
-    }
+    if (agentId == null) return;
 
     _workersStream = FirebaseFirestore.instance
         .collection('workers')
         .where('agentId', isEqualTo: agentId)
         .snapshots()
         .asyncMap((workerSnapshot) async {
-          // For each worker document, fetch the corresponding user document
           List<Future<Worker?>> workerFutures = workerSnapshot.docs.map((
             workerDoc,
           ) async {
@@ -77,19 +73,13 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
                 );
               }
             } catch (e) {
-              print("Error fetching details for a worker: $e");
+              print("Error fetching worker details: $e");
             }
-            return null; // Return null for any worker that fails to load
+            return null;
           }).toList();
 
-          // Wait for all the user data to be fetched
           final workers = await Future.wait(workerFutures);
-
-          // Filter out any nulls that may have occurred from errors
-          return workers
-              .where((worker) => worker != null)
-              .cast<Worker>()
-              .toList();
+          return workers.where((w) => w != null).cast<Worker>().toList();
         });
   }
 
@@ -105,8 +95,8 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('workers').snapshots(),
+      body: StreamBuilder<List<Worker>>(
+        stream: _workersStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -116,31 +106,16 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
           if (snapshot.hasError) {
             return Center(child: Text('An error occurred: ${snapshot.error}'));
           }
-          if (!snapshot.hasData) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return _buildEmptyState();
           }
 
-          final workers = snapshot.data!.docs;
+          final workers = snapshot.data!;
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
             itemCount: workers.length,
             itemBuilder: (context, index) {
-              Worker worker = Worker(
-                id: workers[index].id,
-                name: workers[index].data()['name'] ?? 'No Name',
-                email: workers[index].data()['email'] ?? 'No Email',
-                profilePicUrl: workers[index].data()['profilePicUrl'] ?? '',
-                services: List<String>.from(
-                  workers[index].data()['services'] ?? [],
-                ),
-              );
-              if (workers[index].data()['agentId'] !=
-                  FirebaseAuth.instance.currentUser?.uid.toString()) {
-                print(
-                  '${workers[index].data()['agentId'].toString()} == ${FirebaseAuth.instance.currentUser?.uid.toString()}',
-                );
-                return Container();
-              }
+              final worker = workers[index];
               return _buildWorkerCard(worker);
             },
           );
@@ -151,6 +126,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
 
   Widget _buildWorkerCard(Worker worker) {
     final initial = worker.name.isNotEmpty ? worker.name[0].toUpperCase() : 'W';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -177,13 +153,40 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    worker.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: darkBlue,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          worker.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: darkBlue,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AgentWorkerChatPage(
+                                agentId: FirebaseAuth.instance.currentUser!.uid,
+                                workerId: worker.id,
+                                workerName: worker.name,
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: darkBlue,
+                        ),
+                        child: const Text(
+                          "Chat",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                   Text(worker.email, style: const TextStyle(color: grayBlue)),
                   const SizedBox(height: 8),
@@ -196,7 +199,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
                           .map(
                             (service) => Chip(
                               label: Text(service),
-                              backgroundColor: lightBlue.withValues(alpha: 0.1),
+                              backgroundColor: lightBlue.withOpacity(0.1),
                               labelStyle: const TextStyle(
                                 fontSize: 12,
                                 color: darkBlue,
@@ -225,7 +228,7 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
           Icon(
             Icons.people_outline,
             size: 80,
-            color: grayBlue.withValues(alpha: 0.5),
+            color: grayBlue.withOpacity(0.5),
           ),
           const SizedBox(height: 20),
           const Text(

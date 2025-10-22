@@ -7,6 +7,7 @@ import 'package:skillconnect/pages/agent/chat.dart';
 import 'package:skillconnect/pages/agent/myjobs.dart';
 import 'package:skillconnect/pages/agent/profile.dart';
 import 'package:skillconnect/pages/agent/workers.dart';
+import 'package:skillconnect/pages/signup/login.dart';
 
 class Agent {
   final String organisationName;
@@ -735,10 +736,16 @@ class _ActiveJobCardState extends State<ActiveJobCard> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        label: const Text("Chat with Worker"),
+                        icon: const Icon(
+                          Icons.chat_bubble_outline,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          "Chat with Worker",
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF63ADF2),
+                          backgroundColor: LoginScreenState.darkBlue,
                         ),
                         onPressed: _openChat,
                       ),
