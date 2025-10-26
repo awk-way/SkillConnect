@@ -28,6 +28,7 @@ class _ReviewPageState extends State<ReviewPage> {
   static const Color grayBlue = Color(0xFF82A0BC);
 
   double _rating = 0;
+  double _originalRating = 0; // --- ✅ FIX: Store the original rating
   final TextEditingController _reviewController = TextEditingController();
   bool _isSubmitting = false;
   String? _reviewDocId; // Firestore doc ID for editing
@@ -55,6 +56,8 @@ class _ReviewPageState extends State<ReviewPage> {
         final data = doc.data();
         setState(() {
           _rating = (data['rating'] as num?)?.toDouble() ?? 0;
+          // --- ✅ FIX: Store original rating for correct calculation ---
+          _originalRating = _rating;
           _reviewController.text = data['review'] ?? '';
         });
       }
@@ -114,18 +117,15 @@ class _ReviewPageState extends State<ReviewPage> {
         currentAvg = (data['averageRating'] as num?)?.toDouble() ?? 0;
         currentCount = (data['ratingCount'] as int?) ?? 0;
 
+        // --- ✅ FIX: Use stored _originalRating, not a new fetch ---
         if (widget.isEditing && _reviewDocId != null) {
-          // Editing: recalc average based on new rating
-          // We'll fetch old rating first
-          final oldRatingDoc = await reviewsCollection.doc(_reviewDocId).get();
-          final oldRating =
-              (oldRatingDoc.data()?['rating'] as num?)?.toDouble() ?? 0;
-
-          final totalRating = currentAvg * currentCount - oldRating + _rating;
+          // Editing: (total - old + new) / count
+          final totalRating =
+              (currentAvg * currentCount) - _originalRating + _rating;
           currentAvg = totalRating / currentCount;
         } else {
-          // New review: include new rating
-          final totalRating = currentAvg * currentCount + _rating;
+          // New review: (total + new) / (count + 1)
+          final totalRating = (currentAvg * currentCount) + _rating;
           currentCount += 1;
           currentAvg = totalRating / currentCount;
         }
@@ -142,30 +142,40 @@ class _ReviewPageState extends State<ReviewPage> {
             .collection('agents')
             .doc(widget.agentId);
 
-        // Fetch all workers under this agent
+        // --- ✅ FIX: Query 'workers' collection for agentId ---
         final workerQuery = await FirebaseFirestore.instance
-            .collection('users')
+            .collection('workers') // <-- Was 'users'
             .where('agentId', isEqualTo: widget.agentId)
             .get();
 
-        double sumRatings = 0;
-        int totalWorkersWithRatings = 0;
+        double sumOfWorkerAvgs = 0;
+        int workersWithRatings = 0;
 
-        for (var w in workerQuery.docs) {
-          final wData = w.data();
-          final avgRating = (wData['averageRating'] as num?)?.toDouble() ?? 0;
-          final ratingCount = (wData['ratingCount'] as int?) ?? 0;
-          if (ratingCount > 0) {
-            sumRatings += avgRating;
-            totalWorkersWithRatings += 1;
+        // We must fetch each worker's *user* doc to get their rating
+        for (var workerDoc in workerQuery.docs) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(workerDoc.id) // workerDoc.id IS the userId
+              .get();
+
+          if (userDoc.exists) {
+            final wData = userDoc.data()!;
+            final avgRating = (wData['averageRating'] as num?)?.toDouble() ?? 0;
+            final ratingCount = (wData['ratingCount'] as int?) ?? 0;
+            if (ratingCount > 0) {
+              sumOfWorkerAvgs += avgRating;
+              workersWithRatings += 1;
+            }
           }
         }
 
         double agentAvgRating = 0;
-        if (totalWorkersWithRatings > 0) {
-          agentAvgRating = sumRatings / totalWorkersWithRatings;
+        if (workersWithRatings > 0) {
+          agentAvgRating = sumOfWorkerAvgs / workersWithRatings;
         }
 
+        // --- ✅ FIX: Update agent's 'rating' field (or 'averageRating') ---
+        // Assuming agent doc has 'averageRating' field like worker
         await agentRef.update({'averageRating': agentAvgRating});
       }
 
@@ -256,14 +266,14 @@ class _ReviewPageState extends State<ReviewPage> {
                   decoration: InputDecoration(
                     hintText: 'Write your review (optional)',
                     hintStyle: TextStyle(
-                      color: grayBlue.withValues(alpha: 0.7),
+                      color: grayBlue.withAlpha(178), // 0.7 opacity
                     ),
                     filled: true,
-                    fillColor: paleBlue.withValues(alpha: 0.1),
+                    fillColor: paleBlue.withAlpha(25), // 0.1 opacity
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: grayBlue.withValues(alpha: 0.5),
+                        color: grayBlue.withAlpha(128), // 0.5 opacity
                       ),
                     ),
                   ),

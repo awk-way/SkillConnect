@@ -150,7 +150,6 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
         ),
       );
     } catch (e) {
-      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to send request: $e'),

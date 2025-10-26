@@ -39,7 +39,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
     Icons.person_outline,
   ];
 
-  final List<String> _labels = ["Home", "History", "Profile"];
+  final List<String> _labels = ["Home", "Jobs", "Profile"];
 
   @override
   Widget build(BuildContext context) {
