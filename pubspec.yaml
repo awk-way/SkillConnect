@@ -33,7 +33,10 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/images/
+    - assets/images/skillconnect_logo.jpg
+    - assets/images/1.png
+    - assets/images/2.png
+    - assets/images/3.png
 
   # fonts:
   #   - family: Schyler

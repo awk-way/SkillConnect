@@ -57,19 +57,32 @@ class LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.only(bottom: 30),
                   child: Column(
                     children: [
+                      // --- MODIFIED: Replaced Icon with Image Logo ---
                       Container(
                         width: 80,
                         height: 80,
+                        clipBehavior:
+                            Clip.antiAlias, // This will clip the zoomed image
                         decoration: BoxDecoration(
                           color: lightBlue,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Icon(
-                          Icons.build_circle,
-                          size: 50,
-                          color: Colors.white,
+                        child: Transform.scale(
+                          scale: 1.9, // <-- Try values like 1.2, 1.5, etc.
+                          child: Image.asset(
+                            'assets/images/skillconnect_logo.jpg',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.build_circle,
+                                size: 50,
+                                color: Colors.white,
+                              );
+                            },
+                          ),
                         ),
                       ),
+                      // --- END MODIFICATION ---
                       SizedBox(height: 20),
                       Text(
                         'SkillConnect',
@@ -105,7 +118,7 @@ class LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.only(bottom: 20),
                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   decoration: BoxDecoration(
-                    color: mediumBlue.withValues(alpha: 0.3),
+                    color: mediumBlue.withAlpha(76), // 0.3 opacity
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: grayBlue, width: 1),
                   ),
@@ -144,7 +157,7 @@ class LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.only(bottom: 15),
                   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   decoration: BoxDecoration(
-                    color: mediumBlue.withValues(alpha: 0.3),
+                    color: mediumBlue.withAlpha(76), // 0.3 opacity
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: grayBlue, width: 1),
                   ),
@@ -245,58 +258,13 @@ class LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                SizedBox(height: 20),
-
-                // Divider
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: grayBlue, thickness: 1)),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Text('OR', style: TextStyle(color: paleBlue)),
-                    ),
-                    Expanded(child: Divider(color: grayBlue, thickness: 1)),
-                  ],
-                ),
-
-                SizedBox(height: 20),
-
-                // Google Sign In Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      // Implement Google Sign In
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Google Sign In coming soon!')),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: grayBlue, width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.login, color: paleBlue),
-                        SizedBox(width: 10),
-                        Text(
-                          'Continue with Google',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
+                // --- MODIFIED: Removed Divider and Google Sign In Button ---
+                // The "OR" Divider Row and the Google Sign In Button
+                // have been removed from here.
+                // We keep one SizedBox to create space
+                // before the "Sign Up" link.
                 SizedBox(height: 40),
+                // --- END MODIFICATION ---
 
                 // Sign Up Link
                 Row(

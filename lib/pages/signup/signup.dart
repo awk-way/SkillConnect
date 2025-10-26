@@ -32,8 +32,29 @@ class UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo or App Name
-            Icon(Icons.handyman, size: 80, color: lightBlue),
+            // --- MODIFIED: Replaced Icon with Image Logo ---
+            Container(
+              width: 80,
+              height: 80,
+              clipBehavior:
+                  Clip.antiAlias, // Clips the image to the border radius
+              decoration: BoxDecoration(
+                color: lightBlue, // Background color if image is transparent
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Transform.scale(
+                scale: 1.9, // Scale the image to fit bett
+                child: Image.asset(
+                  'assets/images/skillconnect_logo.jpg',
+                  fit: BoxFit.cover,
+                  // Fallback in case the image fails to load
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.handyman, size: 50, color: Colors.white);
+                  },
+                ),
+              ),
+            ),
+            // --- END MODIFICATION ---
             SizedBox(height: 20),
 
             Text(
@@ -159,8 +180,8 @@ class UserTypeSelectionScreenState extends State<UserTypeSelectionScreen> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isSelected
-              ? lightBlue.withValues(alpha: 0.2)
-              : mediumBlue.withValues(alpha: 0.3),
+              ? lightBlue.withAlpha(51) // 0.2 opacity
+              : mediumBlue.withAlpha(76), // 0.3 opacity
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: isSelected ? lightBlue : grayBlue,

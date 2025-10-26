@@ -15,6 +15,7 @@ import 'package:skillconnect/pages/worker/home.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 import 'firebase_options.dart';
 
+import 'pages/signup/onboarding.dart';
 import 'pages/signup/login.dart';
 import 'pages/signup/signup.dart';
 import 'pages/signup/csignup.dart';
@@ -45,8 +46,9 @@ class SkillConnectApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: OnboardingScreen(),
       routes: {
+        '/signup/onboarding': (context) => OnboardingScreen(),
         '/signup/login': (context) => LoginScreen(),
         '/signup/signup': (context) => UserTypeSelectionScreen(),
         '/signup/csignup': (context) => CustomerSignUpScreen(),
