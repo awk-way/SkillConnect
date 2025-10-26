@@ -21,6 +21,119 @@ class WorkerInfo {
   WorkerInfo({required this.id, required this.name});
 }
 
+class CustomBottomNavBar extends StatefulWidget {
+  final int currentIndex;
+  final Function(int) onTabSelected;
+
+  const CustomBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
+
+  @override
+  State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
+}
+
+class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
+  // --- Define your colors ---
+  static const Color darkBlue = Color(0xFF2E4A68); // Or your 0xFF304D6D
+  static const Color white = Colors.white;
+
+  // --- MODIFIED: Updated for 4 Agent items ---
+  final List<IconData> _icons = [
+    Icons.dashboard_outlined,
+    Icons.work_history_outlined,
+    Icons.people_alt_outlined,
+    Icons.person_outline,
+  ];
+
+  final List<String> _labels = ["Dashboard", "Jobs", "Workers", "Profile"];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80, // Total height of the bar
+      decoration: BoxDecoration(
+        color: darkBlue,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(38), // 0.15 opacity
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(_icons.length, (index) {
+          bool isSelected = widget.currentIndex == index;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => widget.onTabSelected(index),
+              // Use a transparent color to make the whole area tappable
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                // Center the content
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    // --- MODIFIED: Height fix applied ---
+                    height: isSelected ? 50 : 45,
+                    width: isSelected ? 50 : 45,
+                    decoration: BoxDecoration(
+                      color: isSelected ? white : Colors.transparent,
+                      shape: BoxShape.circle,
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(
+                                  51,
+                                ), // 0.2 opacity
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Icon(
+                      _icons[index],
+                      color: isSelected ? darkBlue : white,
+                      size: isSelected ? 28 : 24,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _labels[index],
+                    style: TextStyle(
+                      color: isSelected
+                          ? white
+                          : white.withAlpha(178), // 0.7 opacity
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                  // This spacer helps push the content up
+                  // It replaces the underline and bottom SizedBox
+                  const SizedBox(height: 7),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
 // --- Main Agent Home Page Widget ---
 class AgentHomePage extends StatefulWidget {
   const AgentHomePage({super.key});
@@ -43,34 +156,13 @@ class _AgentHomePageState extends State<AgentHomePage> {
 
     return Scaffold(
       body: pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF63ADF2), // lightBlue
-        unselectedItemColor: const Color(0xFF82A0BC), // grayBlue
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work_history_outlined),
-            activeIcon: Icon(Icons.work_history),
-            label: 'Jobs',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_outlined),
-            activeIcon: Icon(Icons.people_alt),
-            label: 'Workers',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        onTabSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }

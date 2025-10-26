@@ -15,6 +15,139 @@ class Service {
   Service(this.name, this.imageUrl);
 }
 
+class CustomBottomNavBar extends StatefulWidget {
+  final int currentIndex;
+  final Function(int) onTabSelected;
+
+  const CustomBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
+
+  @override
+  State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
+}
+
+class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
+  static const Color darkBlue = Color(0xFF2E4A68);
+  static const Color white = Colors.white;
+
+  final List<IconData> _icons = [
+    Icons.home_outlined,
+    Icons.receipt_long_outlined,
+    Icons.person_outline,
+  ];
+
+  final List<String> _labels = ["Home", "History", "Profile"];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: darkBlue,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // curved center bump
+          Positioned(
+            top: 0,
+            child: Container(
+              height: 80,
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: darkBlue,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+            ),
+          ),
+
+          // main row for icons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(_icons.length, (index) {
+              bool isSelected = widget.currentIndex == index;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => widget.onTabSelected(index),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        height: isSelected ? 50 : 45,
+                        width: isSelected ? 50 : 45,
+                        decoration: BoxDecoration(
+                          color: isSelected ? white : Colors.transparent,
+                          shape: BoxShape.circle,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Icon(
+                          _icons[index],
+                          color: isSelected ? darkBlue : white,
+                          size: isSelected ? 28 : 24,
+                        ),
+                      ),
+                      Text(
+                        _labels[index],
+                        style: TextStyle(
+                          color: isSelected
+                              ? white
+                              : white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                      if (isSelected)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          height: 3,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: white.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
   @override
@@ -102,41 +235,13 @@ class CustomerHomePageState extends State<CustomerHomePage> {
       body: _isDataLoading
           ? const Center(child: CircularProgressIndicator(color: lightBlue))
           : pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
+        onTabSelected: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: lightBlue,
-        unselectedItemColor: grayBlue,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work_outline),
-            activeIcon: Icon(Icons.work),
-            label: 'Jobs',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }
