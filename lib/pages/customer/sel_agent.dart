@@ -101,8 +101,9 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
       return;
     }
 
+    // --- Confirmation Dialog ---
     bool confirm =
-        await showDialog(
+        await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Confirm Job Request'),
@@ -125,31 +126,31 @@ class _AgentDetailsPageState extends State<AgentDetailsPage> {
 
     if (!confirm) return;
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
+      useRootNavigator: true,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      // Delay to simulate backend processing (optional)
       await Future.delayed(const Duration(milliseconds: 500));
-
-      // Close loading dialog
-      Navigator.of(context).pop();
-
-      // Navigate to job details page
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => JobDetailsPage(
-            agentId: widget.agentId,
-            selectedService: widget.selectedService,
+      Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            builder: (context) => JobDetailsPage(
+              agentId: widget.agentId,
+              selectedService: widget.selectedService,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pop(); // Ensure loading dialog closes
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to send request: $e'),

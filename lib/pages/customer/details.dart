@@ -1,11 +1,11 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb; // <-- IMPORTED
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- IMPORTED
-import 'package:firebase_auth/firebase_auth.dart'; // <-- IMPORTED
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:skillconnect/cloudinary_service.dart'; // ✅ Import your service
 
 class JobDetailsPage extends StatefulWidget {
   final String agentId;
@@ -32,65 +32,43 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
   final TextEditingController _descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  List<XFile> _selectedImages = []; // No longer nullable
-  bool _isSubmitting = false; // Changed from _isUploading
+  List<XFile> _selectedImages = [];
+  bool _isSubmitting = false;
   List<String> _uploadedImageUrls = [];
 
-  // Replace with your Cloudinary credentials
-  final String cloudName = "dmtdn3s1e";
-  final String uploadPreset = "skillconnect";
-
-  // Pick multiple images
+  // --- Pick Multiple Images ---
   Future<void> _pickImages() async {
     final pickedFiles = await _picker.pickMultiImage();
-    setState(() {
-      _selectedImages = pickedFiles;
-    });
+    if (pickedFiles.isNotEmpty) {
+      setState(() {
+        _selectedImages = pickedFiles;
+      });
+    }
   }
 
-  // --- ✅ FIXED: UPLOAD IMAGES (Works on Mobile AND Web) ---
-  Future<void> _uploadImages() async {
+  // --- ✅ Upload Images using CloudinaryService ---
+  Future<void> _uploadImagesToCloudinary() async {
     if (_selectedImages.isEmpty) return;
-    setState(() => _isSubmitting = true);
-
     List<String> urls = [];
-    final uploadUrl = Uri.parse(
-      "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
-    );
 
     for (var image in _selectedImages) {
       try {
-        var request = http.MultipartRequest("POST", uploadUrl)
-          ..fields["upload_preset"] = uploadPreset;
+        Uint8List bytes = await image.readAsBytes();
+        String fileName = image.name;
 
-        if (kIsWeb) {
-          // --- Web upload ---
-          request.files.add(
-            http.MultipartFile.fromBytes(
-              "file",
-              await image.readAsBytes(),
-              filename: image.name,
-            ),
-          );
-        } else {
-          // --- Mobile upload ---
-          request.files.add(
-            await http.MultipartFile.fromPath("file", image.path),
-          );
-        }
-
-        var response = await request.send();
+        var response = await CloudinaryService.uploadFile(
+          bytes,
+          fileName,
+          resourceType: "image",
+        );
 
         if (response.statusCode == 200) {
-          final responseData = json.decode(
-            await response.stream.bytesToString(),
-          );
-          urls.add(responseData["secure_url"]);
+          String imageUrl = response.data["secure_url"];
+          urls.add(imageUrl);
         } else {
-          // Handle non-200 response
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Failed to upload ${image.name}.")),
+              SnackBar(content: Text("Failed to upload ${image.name}")),
             );
           }
         }
@@ -105,17 +83,15 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
 
     setState(() {
       _uploadedImageUrls = urls;
-      // We set _isSubmitting to false in the _submitJobDetails function
     });
   }
 
-  // --- ✅ FIXED: Handle final submission to Firestore ---
+  // --- ✅ Submit Job Details to Firestore ---
   Future<void> _submitJobDetails() async {
-    if (!_formKey.currentState!.validate()) return; // Check form first
-
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
-    final currentUser = FirebaseAuth.instance.currentUser;
 
+    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You must be logged in to post a job.')),
@@ -125,48 +101,49 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
     }
 
     try {
-      // Step 1: Upload images if they exist and haven't been uploaded
+      // Upload to Cloudinary if not already done
       if (_selectedImages.isNotEmpty && _uploadedImageUrls.isEmpty) {
-        await _uploadImages();
+        await _uploadImagesToCloudinary();
       }
 
-      // Step 2: Save the new job to Firestore
+      // Add job document in Firestore
       await FirebaseFirestore.instance.collection('jobs').add({
         'title': widget.selectedService,
-        'description': _descriptionController.text,
+        'description': _descriptionController.text.trim(),
         'imageUrls': _uploadedImageUrls,
         'agentId': widget.agentId,
         'userId': currentUser.uid,
-        'status': 'Pending', // Initial status
+        'status': 'Pending',
         'createdAt': FieldValue.serverTimestamp(),
-        'workerId': null, // No worker assigned yet
+        'workerId': null,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Job request sent successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Navigate back to the customer's home page
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Job request sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil('/customer/home', (route) => false);
       }
     } catch (e) {
-      setState(() => _isSubmitting = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to submit job: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to submit job: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // --- ✅ FIXED: Matched your app theme ---
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text("Job Details"),
@@ -220,7 +197,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
               ),
               const SizedBox(height: 8),
 
-              // --- ✅ FIXED: Image Preview (Works on Mobile AND Web) ---
+              // ✅ Image Preview (Works on Web and Mobile)
               _selectedImages.isNotEmpty
                   ? SizedBox(
                       height: 100,
@@ -235,14 +212,12 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                               borderRadius: BorderRadius.circular(10),
                               child: kIsWeb
                                   ? Image.network(
-                                      // Use network for web preview
                                       image.path,
                                       width: 100,
                                       height: 100,
                                       fit: BoxFit.cover,
                                     )
                                   : Image.file(
-                                      // Use file for mobile preview
                                       File(image.path),
                                       width: 100,
                                       height: 100,
@@ -291,7 +266,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                   : ElevatedButton(
                       onPressed: _submitJobDetails,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: lightBlue, // Matched theme
+                        backgroundColor: lightBlue,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
