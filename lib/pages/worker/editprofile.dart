@@ -1,9 +1,10 @@
-import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:skillconnect/cloudinary_service.dart';
 
 class WorkerEditProfilePage extends StatefulWidget {
   const WorkerEditProfilePage({super.key});
@@ -22,7 +23,7 @@ class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
   bool _isSaving = false;
-  File? _imageFile;
+  Uint8List? _imageBytes;
   String? _currentProfilePicUrl;
 
   final _nameController = TextEditingController();
@@ -71,10 +72,53 @@ class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
       source: ImageSource.gallery,
       imageQuality: 50,
     );
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+
+    if (pickedFile == null) return;
+
+    Uint8List fileBytes = await pickedFile.readAsBytes();
+    String fileName = pickedFile.name;
+
+    setState(() {
+      _isLoading = true;
+      _imageBytes = fileBytes;
+    });
+
+    try {
+      final String imageResourceType = "image";
+
+      var response = await CloudinaryService.uploadFile(
+        fileBytes,
+        fileName,
+        resourceType: imageResourceType,
+      );
+
+      if (response.statusCode == 200) {
+        String imageUrl = response.data["secure_url"];
+
+        setState(() {
+          _currentProfilePicUrl = imageUrl;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Image updated successfully! Ready to save."),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error uploading picture: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -87,26 +131,13 @@ class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("Authentication error");
 
-      String newProfilePicUrl = _currentProfilePicUrl ?? '';
-
-      // 1. Upload new image if one was selected
-      if (_imageFile != null) {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('profile_pics')
-            .child('${user.uid}.jpg');
-        await ref.putFile(_imageFile!);
-        newProfilePicUrl = await ref.getDownloadURL();
-      }
-
-      // 2. Update the user's document
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .update({
             'name': _nameController.text.trim(),
             'contact': _contactController.text.trim(),
-            'profilePicUrl': newProfilePicUrl,
+            'profilePicUrl': _currentProfilePicUrl ?? '',
           });
 
       if (mounted) {
@@ -193,18 +224,18 @@ class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
           CircleAvatar(
             radius: 50,
             backgroundColor: paleBlue,
-            backgroundImage: _imageFile != null
-                ? FileImage(_imageFile!)
+            backgroundImage: _imageBytes != null
+                ? MemoryImage(_imageBytes!)
                 : (_currentProfilePicUrl != null &&
                               _currentProfilePicUrl!.isNotEmpty
                           ? NetworkImage(_currentProfilePicUrl!)
                           : null)
                       as ImageProvider?,
             child:
-                _imageFile == null &&
+                _imageBytes == null &&
                     (_currentProfilePicUrl == null ||
                         _currentProfilePicUrl!.isEmpty)
-                ? const Icon(Icons.person, size: 50, color: darkBlue)
+                ? const Icon(Icons.business, size: 50, color: darkBlue)
                 : null,
           ),
           Positioned(
@@ -219,6 +250,14 @@ class WorkerEditProfilePageState extends State<WorkerEditProfilePage> {
               ),
             ),
           ),
+          if (_isLoading)
+            const Positioned.fill(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.black45,
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );

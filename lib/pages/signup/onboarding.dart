@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// Import the screen you want to go to after onboarding
 import 'package:skillconnect/pages/signup/signup.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -13,13 +13,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // --- Define your colors from the image ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
   static const Color paleBlue = Color(0xFFA7CCED);
-  static const Color textDark = Color(0xFF333333); // For titles
-  static const Color textLight = Color(0xFF666666); // For subtitles
+  static const Color textDark = Color(0xFF333333);
+  static const Color textLight = Color(0xFF666666);
 
   @override
   void dispose() {
@@ -27,7 +26,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  // --- Navigation logic for "Skip" or "Get Started" ---
   void _completeOnboarding() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const UserTypeSelectionScreen()),
@@ -41,7 +39,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- PageView for the 4 screens ---
             Expanded(
               child: PageView(
                 controller: _pageController,
@@ -56,7 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: "SkillConnect",
                     subtitle:
                         "SkillConnect at your service. One app for all your home repair and handyman needs.",
-                    isLogo: true, // Special flag to use the app logo
+                    isLogo: true,
                   ),
 
                   // --- Page 2: Easy Process ---
@@ -64,15 +61,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: "Easy Process",
                     subtitle:
                         "Booking made effortless. Find and hire the right handyman in just a few taps.",
-                    // !! MODIFIED: Replaced placeholder with your image !!
                     imageWidget: Image.asset(
                       'assets/images/1.png',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        // Fallback text if image fails to load
-                        return const Text(
-                          'Easy Process',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        return Center(
+                          child: Text(
+                            'Easy Process',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -83,14 +83,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: "Fast Transportation",
                     subtitle:
                         "Faster transport, quicker service. Your handyman arrives on time, every time.",
-                    // !! MODIFIED: Replaced placeholder with your image !!
                     imageWidget: Image.asset(
                       'assets/images/2.png',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Text(
-                          'Fast Transportation',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        return Center(
+                          child: Text(
+                            'Fast Transportation',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -101,14 +105,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: "Expert People",
                     subtitle:
                         "Skilled hands, trusted service. Get help from trained and verified experts.",
-                    // !! MODIFIED: Replaced placeholder with your image !!
                     imageWidget: Image.asset(
                       'assets/images/3.png',
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Text(
-                          'Expert People',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        return Center(
+                          child: Text(
+                            'Expert People',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -117,9 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // --- Bottom Controls (Indicator + Button) ---
             Padding(
-              // Consistent padding from the bottom
               padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 30.0),
               child: Column(
                 children: [
@@ -135,29 +141,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // --- Helper to build each page's content ---
   Widget _buildPage({
     required String title,
     required String subtitle,
     Widget? imageWidget,
     bool isLogo = false,
   }) {
-    // This Column matches the layout in the image
     return Column(
       children: [
-        // --- Top blue container for the image ---
         Expanded(
-          flex: 3, // Gives more space to the image area
+          flex: 3,
           child: Container(
             width: double.infinity,
             margin: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
             decoration: BoxDecoration(
               color: darkBlue,
-              borderRadius: BorderRadius.circular(30), // From image
+              borderRadius: BorderRadius.circular(30),
             ),
             child: Stack(
               children: [
-                // "Skip" Button
                 Positioned(
                   top: 10,
                   right: 10,
@@ -165,19 +167,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: _completeOnboarding,
                     child: Text(
                       'Skip',
-                      style: TextStyle(
-                        color: grayBlue.withAlpha(200), // Muted color
+                      style: GoogleFonts.nunito(
+                        color: grayBlue.withAlpha(200),
                         fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ),
-                // Main Image/Logo
                 Center(
                   child: isLogo
                       ? Container(
-                          width: 150, // Logo size
-                          height: 150,
+                          width: 220, // Logo size
+                          height: 220,
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(25),
@@ -194,9 +196,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             },
                           ),
                         )
-                      : Padding(
-                          padding: const EdgeInsets.all(40.0),
-                          child: imageWidget, // Your placeholder/illustration
+                      : Container(
+                          margin: const EdgeInsets.all(30.0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20.0),
+                            child: imageWidget,
+                          ),
                         ),
                 ),
               ],
@@ -204,9 +209,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
 
-        // --- Bottom area for text ---
         Expanded(
-          flex: 2, // Gives less space to the text area
+          flex: 2,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 30.0,
@@ -217,7 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: GoogleFonts.nunito(
                     color: textDark,
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -227,10 +231,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 15),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: GoogleFonts.nunito(
                     color: textLight,
                     fontSize: 16,
-                    height: 1.4, // Line spacing
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -242,7 +247,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // --- Helper to build the 4-dot page indicator ---
   Widget _buildPageIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -251,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4.0),
           height: 8.0,
-          width: _currentPage == index ? 24.0 : 8.0, // Active dot is wider
+          width: _currentPage == index ? 24.0 : 8.0,
           decoration: BoxDecoration(
             color: _currentPage == index ? darkBlue : paleBlue,
             borderRadius: BorderRadius.circular(4.0),
@@ -261,7 +265,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // --- Helper to build the "Next" / "Get Started" button ---
   Widget _buildBottomButton() {
     bool isLastPage = _currentPage == 3;
 
@@ -281,13 +284,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: lightBlue,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // From image
+            borderRadius: BorderRadius.circular(12),
           ),
           elevation: 3,
         ),
         child: Text(
           isLastPage ? 'Get Started' : 'Next',
-          style: const TextStyle(
+          style: GoogleFonts.nunito(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,

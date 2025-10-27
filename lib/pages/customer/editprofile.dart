@@ -1,9 +1,9 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:skillconnect/cloudinary_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -22,8 +22,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   // --- State Variables ---
   bool _isLoading = true;
   bool _isSaving = false;
-  File? _imageFile;
-  String? _profilePicUrl;
+  Uint8List? _imageBytes;
+  String? _currentProfilePicUrl;
 
   // --- Controllers & Keys ---
   final _formKey = GlobalKey<FormState>();
@@ -63,9 +63,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _contactController.text = data['contact'] ?? '';
         _addressController.text = data['address'] ?? '';
         _cityController.text = data['city'] ?? '';
-        setState(() {
-          _profilePicUrl = data['profilePicUrl'];
-        });
+        _currentProfilePicUrl = data['profilePicUrl'];
       }
     } catch (e) {
       _showErrorSnackBar('Failed to load user data: $e');
@@ -79,10 +77,53 @@ class _EditProfilePageState extends State<EditProfilePage> {
       source: ImageSource.gallery,
       imageQuality: 50,
     );
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+
+    if (pickedFile == null) return;
+
+    Uint8List fileBytes = await pickedFile.readAsBytes();
+    String fileName = pickedFile.name;
+
+    setState(() {
+      _isLoading = true;
+      _imageBytes = fileBytes;
+    });
+
+    try {
+      final String imageResourceType = "image";
+
+      var response = await CloudinaryService.uploadFile(
+        fileBytes,
+        fileName,
+        resourceType: imageResourceType,
+      );
+
+      if (response.statusCode == 200) {
+        String imageUrl = response.data["secure_url"];
+
+        setState(() {
+          _currentProfilePicUrl = imageUrl;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Image updated successfully! Ready to save."),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error uploading picture: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -95,19 +136,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not found");
 
-      String? newProfilePicUrl = _profilePicUrl;
-
-      // 1. Upload new image if one was selected
-      if (_imageFile != null) {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('profile_pics')
-            .child('${user.uid}.jpg');
-        await ref.putFile(_imageFile!);
-        newProfilePicUrl = await ref.getDownloadURL();
-      }
-
-      // 2. Update user document in Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -116,7 +144,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             'contact': _contactController.text.trim(),
             'address': _addressController.text.trim(),
             'city': _cityController.text.trim(),
-            'profilePicUrl': newProfilePicUrl ?? '',
+            'profilePicUrl': _currentProfilePicUrl ?? '',
           });
 
       if (mounted) {
@@ -199,36 +227,42 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Stack(
         children: [
           CircleAvatar(
-            radius: 60,
+            radius: 50,
             backgroundColor: paleBlue,
-            backgroundImage: _imageFile != null
-                ? FileImage(_imageFile!)
-                : (_profilePicUrl != null && _profilePicUrl!.isNotEmpty
-                          ? NetworkImage(_profilePicUrl!)
+            backgroundImage: _imageBytes != null
+                ? MemoryImage(_imageBytes!)
+                : (_currentProfilePicUrl != null &&
+                              _currentProfilePicUrl!.isNotEmpty
+                          ? NetworkImage(_currentProfilePicUrl!)
                           : null)
                       as ImageProvider?,
             child:
-                (_imageFile == null &&
-                    (_profilePicUrl == null || _profilePicUrl!.isEmpty))
-                ? const Icon(Icons.person, size: 60, color: darkBlue)
+                _imageBytes == null &&
+                    (_currentProfilePicUrl == null ||
+                        _currentProfilePicUrl!.isEmpty)
+                ? const Icon(Icons.business, size: 50, color: darkBlue)
                 : null,
           ),
           Positioned(
             bottom: 0,
             right: 0,
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: lightBlue,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                onPressed: _pickImage,
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundColor: lightBlue,
+                child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
               ),
             ),
           ),
+          if (_isLoading)
+            const Positioned.fill(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.black45,
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
