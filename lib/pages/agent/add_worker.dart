@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,28 +25,46 @@ class AddWorkerPageState extends State<AddWorkerPage> {
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   final List<String> _selectedServices = [];
-  bool _isLoading = false;
 
-  final List<String> _availableServices = [
-    'Plumbing',
-    'Electrical Work',
-    'Carpentry',
-    'AC Repair',
-    'Washing Machine Repair',
-    'Refrigerator Repair',
-    'RO Water Purifier Repair',
-    'Microwave Repair',
-    'Geyser Repair',
-    'Chimney & Hob Repair',
-    'Painting',
-    'Cleaning',
-    'Pest Control',
-    'Bathroom Cleaning',
-    'Kitchen Cleaning',
-    'Carpet Cleaning',
-    'Car Cleaning',
-    'Moving Services',
-  ];
+  bool _isLoading = false;
+  List<String> _availableServices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAgentServices();
+  }
+
+  Future<void> _fetchAgentServices() async {
+    try {
+      final agentUid = FirebaseAuth.instance.currentUser?.uid;
+      if (agentUid == null) return;
+
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('agents')
+          .doc(agentUid)
+          .get();
+
+      if (docSnapshot.exists && docSnapshot.data()!.containsKey('services')) {
+        final List<dynamic> servicesData = docSnapshot['services'];
+        setState(() {
+          _availableServices = List<String>.from(servicesData);
+        });
+      } else {
+        setState(() {
+          _availableServices = [];
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching agent services: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load services: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -75,15 +91,11 @@ class AddWorkerPageState extends State<AddWorkerPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Create a temporary, secondary Firebase app to create a new user
-      // This is necessary because the agent is already logged in on the default app.
       FirebaseApp tempApp = await Firebase.initializeApp(
-        name:
-            'tempWorkerApp-${DateTime.now().millisecondsSinceEpoch}', // Unique name
+        name: 'tempWorkerApp-${DateTime.now().millisecondsSinceEpoch}',
         options: Firebase.app().options,
       );
 
-      // Create user in Firebase Auth using the temporary app
       UserCredential userCredential =
           await FirebaseAuth.instanceFor(
             app: tempApp,
@@ -97,10 +109,8 @@ class AddWorkerPageState extends State<AddWorkerPage> {
 
       if (agentUid == null) throw Exception("Agent not logged in.");
 
-      // Use a batch write to add data to 'users' and 'workers' collections atomically
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
-      // 1. Create worker document in 'users' collection
       batch.set(
         FirebaseFirestore.instance.collection('users').doc(newWorkerUid),
         {
@@ -113,7 +123,6 @@ class AddWorkerPageState extends State<AddWorkerPage> {
         },
       );
 
-      // 2. Create worker document in 'workers' collection
       batch.set(
         FirebaseFirestore.instance.collection('workers').doc(newWorkerUid),
         {
@@ -128,8 +137,6 @@ class AddWorkerPageState extends State<AddWorkerPage> {
       );
 
       await batch.commit();
-
-      // Clean up the temporary app
       await tempApp.delete();
 
       if (mounted) {
@@ -173,59 +180,69 @@ class AddWorkerPageState extends State<AddWorkerPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildInputField(
-                _nameController,
-                'Full Name',
-                Icons.person_outline,
-                validator: (v) => v!.isEmpty ? 'Enter name' : null,
-              ),
-              _buildInputField(
-                _emailController,
-                'Email Address',
-                Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) => v!.isEmpty ? 'Enter email' : null,
-              ),
-              _buildInputField(
-                _contactController,
-                'Contact Number',
-                Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                validator: (v) => v!.isEmpty ? 'Enter contact' : null,
-              ),
-              _buildInputField(
-                _passwordController,
-                'Temporary Password',
-                Icons.lock_outline,
-                validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
-              ),
-              const SizedBox(height: 20),
-              _buildServicesSelection(),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _createWorker,
-                  style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Create Worker',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+      body: _availableServices.isEmpty
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildInputField(
+                      _nameController,
+                      'Full Name',
+                      Icons.person_outline,
+                      validator: (v) => v!.isEmpty ? 'Enter name' : null,
+                    ),
+                    _buildInputField(
+                      _emailController,
+                      'Email Address',
+                      Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => v!.isEmpty ? 'Enter email' : null,
+                    ),
+                    _buildInputField(
+                      _contactController,
+                      'Contact Number',
+                      Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                      validator: (v) => v!.isEmpty ? 'Enter contact' : null,
+                    ),
+                    _buildInputField(
+                      _passwordController,
+                      'Temporary Password',
+                      Icons.lock_outline,
+                      validator: (v) =>
+                          v!.length < 6 ? 'Min 6 characters' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildServicesSelection(),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _createWorker,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: lightBlue,
                         ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'Create Worker',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
