@@ -1,9 +1,9 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:skillconnect/cloudinary_service.dart';
 
 class AgentEditProfilePage extends StatefulWidget {
   const AgentEditProfilePage({super.key});
@@ -18,11 +18,10 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color paleBlue = Color(0xFFA7CCED);
 
-  // --- Form & State ---
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
   bool _isSaving = false;
-  File? _imageFile;
+  Uint8List? _imageBytes; 
   String? _currentProfilePicUrl;
 
   final _orgNameController = TextEditingController();
@@ -95,6 +94,7 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to load data: $e")));
@@ -108,10 +108,51 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
       source: ImageSource.gallery,
       imageQuality: 50,
     );
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+
+    if (pickedFile == null) return;
+
+    Uint8List fileBytes = await pickedFile.readAsBytes(); 
+    String fileName = pickedFile.name;
+
+    setState(() {
+      _isLoading = true;
+      _imageBytes = fileBytes;
+    });
+
+    try {
+      final String imageResourceType = "image";
+
+      var response = await CloudinaryService.uploadFile(
+        fileBytes,
+        fileName,
+        resourceType: imageResourceType,
+      );
+
+      if (response.statusCode == 200) {
+        String imageUrl = response.data["secure_url"];
+        
+        setState(() {
+          _currentProfilePicUrl = imageUrl;
+        });
+        
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Image updated successfully! Ready to save.")),
+          );
+        }
+      }
+    } catch (e) {
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error uploading picture: $e")),
+        );
+       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -124,19 +165,7 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("Authentication error");
 
-      String newProfilePicUrl = _currentProfilePicUrl ?? '';
-
-      // 1. Upload new image if one was selected
-      if (_imageFile != null) {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('profile_pics')
-            .child('${user.uid}.jpg');
-        await ref.putFile(_imageFile!);
-        newProfilePicUrl = await ref.getDownloadURL();
-      }
-
-      // 2. Use a batch write to update both documents
+      String profilePicUrlToSave = _currentProfilePicUrl ?? '';
       WriteBatch batch = FirebaseFirestore.instance.batch();
 
       final userDocRef = FirebaseFirestore.instance
@@ -144,7 +173,7 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
           .doc(user.uid);
       batch.update(userDocRef, {
         'contact': _contactController.text.trim(),
-        'profilePicUrl': newProfilePicUrl,
+        'profilePicUrl': profilePicUrlToSave,
         'name': _orgNameController.text.trim(),
       });
 
@@ -167,6 +196,7 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
         Navigator.of(context).pop();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to update profile: $e")));
@@ -193,7 +223,7 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
           ),
         ],
       ),
-      body: _isLoading
+      body: _isLoading || _isSaving
           ? const Center(child: CircularProgressIndicator(color: lightBlue))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
@@ -232,10 +262,6 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
                     const SizedBox(height: 24),
                     _buildServicesSelection(),
                     const SizedBox(height: 24),
-                    if (_isSaving)
-                      const Center(
-                        child: CircularProgressIndicator(color: lightBlue),
-                      ),
                   ],
                 ),
               ),
@@ -250,19 +276,19 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
           CircleAvatar(
             radius: 50,
             backgroundColor: paleBlue,
-            backgroundImage: _imageFile != null
-                ? FileImage(_imageFile!)
+            backgroundImage: _imageBytes != null
+                ? MemoryImage(_imageBytes!)
                 : (_currentProfilePicUrl != null &&
-                              _currentProfilePicUrl!.isNotEmpty
-                          ? NetworkImage(_currentProfilePicUrl!)
-                          : null)
-                      as ImageProvider?,
+                        _currentProfilePicUrl!.isNotEmpty
+                    ? NetworkImage(_currentProfilePicUrl!)
+                    : null)
+                as ImageProvider?,
             child:
-                _imageFile == null &&
-                    (_currentProfilePicUrl == null ||
-                        _currentProfilePicUrl!.isEmpty)
-                ? const Icon(Icons.business, size: 50, color: darkBlue)
-                : null,
+                _imageBytes == null &&
+                        (_currentProfilePicUrl == null ||
+                            _currentProfilePicUrl!.isEmpty)
+                    ? const Icon(Icons.business, size: 50, color: darkBlue)
+                    : null,
           ),
           Positioned(
             bottom: 0,
@@ -276,6 +302,14 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
               ),
             ),
           ),
+          if (_isLoading)
+            const Positioned.fill(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.black45,
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
@@ -329,3 +363,5 @@ class AgentEditProfilePageState extends State<AgentEditProfilePage> {
     );
   }
 }
+
+

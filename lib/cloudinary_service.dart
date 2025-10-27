@@ -4,8 +4,7 @@ class CloudinaryService {
   static const String _cloudName = "dmtdn3s1e";
   static Future<Response> uploadFile(
     Uint8List fileBytes,
-    String fileName,
-    String uploadPreset, {
+    String fileName, {
     String resourceType = 'auto', 
   }) async {
     
