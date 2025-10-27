@@ -173,9 +173,6 @@ class _ReviewPageState extends State<ReviewPage> {
         if (workersWithRatings > 0) {
           agentAvgRating = sumOfWorkerAvgs / workersWithRatings;
         }
-
-        // --- ✅ FIX: Update agent's 'rating' field (or 'averageRating') ---
-        // Assuming agent doc has 'averageRating' field like worker
         await agentRef.update({'averageRating': agentAvgRating});
       }
 

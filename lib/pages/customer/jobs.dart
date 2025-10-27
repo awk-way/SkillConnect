@@ -325,8 +325,7 @@ class _JobCardState extends State<JobCard> {
       'inprogress',
     ].contains(widget.job.status.toLowerCase());
 
-    final isCompleted =
-        widget.job.status.toLowerCase() == 'completed'; // ✅ For review button
+    final isCompleted = widget.job.status.toLowerCase() == 'completed';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

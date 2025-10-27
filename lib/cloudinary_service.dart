@@ -1,13 +1,14 @@
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+
 class CloudinaryService {
   static const String _cloudName = "dmtdn3s1e";
   static Future<Response> uploadFile(
     Uint8List fileBytes,
     String fileName, {
-    String resourceType = 'auto', 
+    String resourceType = 'auto',
   }) async {
-    
     // The Cloudinary upload URL.
     final String uploadUrl =
         "https://api.cloudinary.com/v1_1/$_cloudName/$resourceType/upload";
@@ -24,19 +25,20 @@ class CloudinaryService {
       final response = await dio.post(
         uploadUrl,
         data: formData,
-        options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
+        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
       );
       return response;
-
     } on DioException catch (e) {
-      print("Cloudinary upload error: ${e.response?.data ?? e.message}");
-      throw Exception("Failed to upload file. Server said: ${e.response?.data?['error']?['message'] ?? e.message}");
+      if (kDebugMode) {
+        print("Cloudinary upload error: ${e.response?.data ?? e.message}");
+      }
+      throw Exception(
+        "Failed to upload file. Server said: ${e.response?.data?['error']?['message'] ?? e.message}",
+      );
     } catch (e) {
-      print("Unexpected error during upload: $e");
+      if (kDebugMode) {
+        print("Unexpected error during upload: $e");
+      }
       throw Exception("An unexpected error occurred: $e");
     }
   }

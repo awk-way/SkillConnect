@@ -7,6 +7,8 @@ import 'package:skillconnect/pages/customer/notifications.dart';
 import 'package:skillconnect/pages/customer/profile.dart';
 import 'package:skillconnect/pages/customer/ser_agents.dart';
 import 'package:skillconnect/pages/customer/services.dart';
+import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/customer/review.dart';
 
 class Service {
   final String name;
@@ -14,6 +16,41 @@ class Service {
 
   Service(this.name, this.imageUrl);
 }
+
+// --- ADDED: Job Model ---
+class Job {
+  final String jobId;
+  final String title;
+  final String status;
+  final String agentId;
+  final String userId;
+  final Timestamp createdAt;
+  final bool hasReview;
+
+  Job({
+    required this.jobId,
+    required this.title,
+    required this.status,
+    required this.agentId,
+    required this.userId,
+    required this.createdAt,
+    required this.hasReview,
+  });
+
+  factory Job.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
+    return Job(
+      jobId: doc.id,
+      title: data['title'] ?? 'No Title',
+      status: data['status'] ?? 'Unknown',
+      agentId: data['agent_id'] ?? '',
+      userId: data['user_id'] ?? '',
+      createdAt: data['created_at'] ?? Timestamp.now(),
+      hasReview: data['has_review'] ?? false,
+    );
+  }
+}
+// --- END: Job Model ---
 
 class CustomBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -68,9 +105,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             child: Container(
               height: 80,
               width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: darkBlue,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
@@ -272,6 +309,8 @@ class CustomerHomePageState extends State<CustomerHomePage> {
             _buildSearchBar(),
             const SizedBox(height: 24),
             _buildQuickServicesGrid(),
+            const SizedBox(height: 24), // --- ADDED ---
+            _buildReviewableJobsSection(), // --- ADDED ---
           ],
         ),
       ),
@@ -329,7 +368,6 @@ class CustomerHomePageState extends State<CustomerHomePage> {
             ],
           ),
         ),
-        // MODIFIED: Added StreamBuilder and Stack for notification badge
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('notifications')
@@ -513,6 +551,225 @@ class CustomerHomePageState extends State<CustomerHomePage> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildReviewableJobsSection() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('jobs')
+          .where('user_id', isEqualTo: currentUser.uid)
+          .where('status', isEqualTo: 'Completed')
+          .where('has_review', isEqualTo: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: lightBlue,
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return const Text('Error loading jobs.');
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const SizedBox.shrink(); // No jobs to review
+        }
+
+        final jobDocs = snapshot.data!.docs;
+        final jobs = jobDocs.map((doc) => Job.fromFirestore(doc)).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Provide Reviews',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...jobs.map((job) => ReviewableJobCard(job: job)),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class ReviewableJobCard extends StatefulWidget {
+  final Job job;
+  const ReviewableJobCard({super.key, required this.job});
+
+  @override
+  State<ReviewableJobCard> createState() => _ReviewableJobCardState();
+}
+
+class _ReviewableJobCardState extends State<ReviewableJobCard> {
+  // --- UI Color Scheme (from CustomerHomePageState) ---
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color lightBlue = Color(0xFF63ADF2);
+  static const Color grayBlue = Color(0xFF82A0BC);
+
+  String? _agentName;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAgentName();
+  }
+
+  Future<void> _fetchAgentName() async {
+    try {
+      if (widget.job.agentId.isEmpty) {
+        setState(() {
+          _agentName = 'Unknown Agent';
+          _isLoading = false;
+        });
+        return;
+      }
+      DocumentSnapshot agentDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.job.agentId)
+          .get();
+
+      if (agentDoc.exists && mounted) {
+        setState(() {
+          _agentName = agentDoc.get('name');
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _agentName = 'Error';
+          _isLoading = false;
+        });
+      }
+      if (kDebugMode) {
+        print("Error fetching agent name: $e");
+      }
+    }
+  }
+
+  void _navigateToReview() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReviewPage(
+          jobId: widget.job.jobId,
+          workerId: widget.job.agentId,
+          workerName: _agentName ?? 'Worker',
+          isEditing: widget.job.hasReview,
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'active':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return grayBlue;
+    }
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: grayBlue, size: 16),
+        const SizedBox(width: 8),
+        Text(text, style: const TextStyle(fontSize: 14, color: darkBlue)),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.job.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: darkBlue,
+                    ),
+                  ),
+                ),
+                Chip(
+                  label: Text(widget.job.status),
+                  backgroundColor: _getStatusColor(
+                    widget.job.status,
+                  ).withValues(alpha: 0.1),
+                  labelStyle: TextStyle(
+                    color: _getStatusColor(widget.job.status),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            _buildInfoRow(
+              Icons.calendar_today_outlined,
+              DateFormat('d MMM yyyy').format(widget.job.createdAt.toDate()),
+            ),
+            const SizedBox(height: 8),
+            _buildInfoRow(
+              Icons.person_outline,
+              _isLoading ? 'Loading...' : _agentName ?? 'Unknown',
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _navigateToReview,
+                icon: const Icon(Icons.rate_review_outlined, size: 18),
+                label: const Text('Provide a Review'),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: lightBlue),
+                  foregroundColor: lightBlue,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
