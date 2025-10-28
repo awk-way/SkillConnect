@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:skillconnect/pages/customer/details.dart';
 import 'package:skillconnect/pages/customer/sel_agent.dart';
 
 class Agent {
@@ -97,7 +98,7 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Confirm Job Request'),
+            title: const Text('Confirm Job Request 2'),
             content: Text(
               'Send a request to "$agentName" for "${widget.selectedService}"?',
             ),
@@ -125,21 +126,35 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
     );
 
     try {
-      await FirebaseFirestore.instance.collection('jobs').add({
-        'userId': currentUser.uid,
-        'agentId': agentId,
-        'title': widget.selectedService,
-        'status': 'Pending',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request sent successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      await FirebaseFirestore.instance
+          .collection('jobs')
+          .add({
+            'userId': currentUser.uid,
+            'agentId': agentId,
+            'title': widget.selectedService,
+            'status': 'Pending',
+            'createdAt': FieldValue.serverTimestamp(),
+          })
+          .then((onValue) {
+            Navigator.of(context).pop();
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => JobDetailsPage(
+                      agentId: agentId,
+                      selectedService: widget.selectedService,
+                    ),
+                  ),
+                )
+                .then((onValue) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Request sent successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                });
+          });
     } catch (e) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
