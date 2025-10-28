@@ -59,6 +59,7 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
             .collection('users')
             .doc(agentId)
             .get();
+
         if (userDoc.exists) {
           final userData = userDoc.data()!;
           return Agent(
@@ -118,52 +119,23 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
 
     if (!confirm) return;
 
-    // Show loading indicator
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-      barrierDismissible: false,
+    // Directly navigate to JobDetailsPage — no Firestore write here
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => JobDetailsPage(
+          agentId: agentId,
+          selectedService: widget.selectedService,
+        ),
+      ),
     );
 
-    try {
-      await FirebaseFirestore.instance
-          .collection('jobs')
-          .add({
-            'userId': currentUser.uid,
-            'agentId': agentId,
-            'title': widget.selectedService,
-            'status': 'Pending',
-            'createdAt': FieldValue.serverTimestamp(),
-          })
-          .then((onValue) {
-            Navigator.of(context).pop();
-            Navigator.of(context)
-                .push(
-                  MaterialPageRoute(
-                    builder: (context) => JobDetailsPage(
-                      agentId: agentId,
-                      selectedService: widget.selectedService,
-                    ),
-                  ),
-                )
-                .then((onValue) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Request sent successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                });
-          });
-    } catch (e) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send request: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    // Show feedback message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Redirecting to job details...'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -171,9 +143,9 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Available Agents',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: darkBlue,
         iconTheme: const IconThemeData(color: Colors.white),

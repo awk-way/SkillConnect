@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:skillconnect/pages/agent/chat.dart';
 import 'package:skillconnect/pages/chatpage.dart';
+import 'package:skillconnect/pages/customer/showdetails.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 
 class CustomBottomNavBar extends StatefulWidget {
@@ -373,6 +374,7 @@ class _NewJobCardState extends State<NewJobCard> {
 
   @override
   Widget build(BuildContext context) {
+    final id = widget.jobData['id'] ?? 'N/A';
     final title = widget.jobData['title'] ?? 'No Title';
     final timestamp = widget.jobData['createdAt'] as Timestamp?;
     final date = timestamp != null
@@ -395,6 +397,30 @@ class _NewJobCardState extends State<NewJobCard> {
             const Divider(height: 16),
             Text("Customer: $_customerName"),
             Text("Assigned On: $date"),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.info_outline, size: 18),
+                label: const Text("View Details"),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF63ADF2)), // lightBlue
+                  foregroundColor: Color(0xFF63ADF2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ShowDetailsPage(jobId: id),
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

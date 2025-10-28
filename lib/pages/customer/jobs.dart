@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:skillconnect/pages/chatpage.dart';
 import 'package:skillconnect/pages/customer/review.dart';
+import 'package:skillconnect/pages/customer/showdetails.dart';
 
 class Job {
   final String id;
@@ -135,11 +136,26 @@ class _JobsPageState extends State<JobsPage> {
         ),
       );
     }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: jobs.length,
       itemBuilder: (context, index) {
-        return JobCard(job: jobs[index]);
+        final job = jobs[index];
+
+        return GestureDetector(
+          onTap: () {
+            if (job.status.toLowerCase() == 'pending') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ShowDetailsPage(jobId: job.id),
+                ),
+              );
+            }
+          },
+          child: JobCard(job: job),
+        );
       },
     );
   }
