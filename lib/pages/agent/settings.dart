@@ -10,6 +10,11 @@ class AgentSettingsPage extends StatefulWidget {
 }
 
 class _AgentSettingsPageState extends State<AgentSettingsPage> {
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color lightBlue = Color(0xFF63ADF2);
+  static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color paleBlue = Color(0xFFA7CCED);
+
   bool _notificationsEnabled = true;
   final _auth = FirebaseAuth.instance;
 
@@ -45,14 +50,18 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
         content: TextField(
           controller: newPasswordController,
           obscureText: true,
-          decoration: const InputDecoration(hintText: "Enter new password"),
+          decoration: const InputDecoration(
+            hintText: "Enter new password",
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: grayBlue)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: lightBlue),
             onPressed: () async {
               try {
                 await _auth.currentUser!.updatePassword(
@@ -62,15 +71,19 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Password updated successfully"),
+                    backgroundColor: lightBlue,
                   ),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Error: $e"),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
               }
             },
-            child: const Text("Save"),
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -88,10 +101,10 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: grayBlue)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Delete"),
           ),
@@ -103,14 +116,19 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
       try {
         await _auth.currentUser!.delete();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Account deleted successfully")),
+          const SnackBar(
+            content: Text("Account deleted successfully"),
+            backgroundColor: lightBlue,
+          ),
         );
-        // Navigate to login or onboarding screen
         Navigator.pushReplacementNamed(context, '/login');
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error deleting account: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error deleting account: $e"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     }
   }
@@ -118,40 +136,75 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: paleBlue.withOpacity(0.2),
       appBar: AppBar(
         title: const Text("Settings"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: darkBlue,
+        elevation: 0,
+        titleTextStyle: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
       body: ListView(
+        padding: const EdgeInsets.all(12.0),
         children: [
           const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.lock_outline, color: Colors.blueAccent),
-            title: const Text("Change Password"),
-            onTap: _changePassword,
-          ),
-          SwitchListTile(
-            secondary: const Icon(
-              Icons.notifications_active_outlined,
-              color: Colors.blueAccent,
+          Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text("Enable Notifications"),
-            value: _notificationsEnabled,
-            onChanged: _toggleNotifications,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.lock_outline, color: lightBlue),
+                  title: const Text(
+                    "Change Password",
+                    style: TextStyle(color: darkBlue),
+                  ),
+                  onTap: _changePassword,
+                ),
+                const Divider(),
+                SwitchListTile(
+                  secondary: const Icon(
+                    Icons.notifications_active_outlined,
+                    color: lightBlue,
+                  ),
+                  title: const Text(
+                    "Enable Notifications",
+                    style: TextStyle(color: darkBlue),
+                  ),
+                  value: _notificationsEnabled,
+                  activeColor: lightBlue,
+                  onChanged: _toggleNotifications,
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    "Delete Account",
+                    style: TextStyle(color: darkBlue),
+                  ),
+                  onTap: _deleteAccount,
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            title: const Text("Delete Account"),
-            onTap: _deleteAccount,
-          ),
-          const Divider(),
+          const SizedBox(height: 20),
           const Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               "FAQs",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
           ),
+          const SizedBox(height: 8),
           _buildFAQ(
             "How do I accept a job?",
             "Go to your Home tab, view new job requests, and tap Accept to start.",
@@ -168,21 +221,30 @@ class _AgentSettingsPageState extends State<AgentSettingsPage> {
             "Can I report a customer?",
             "Yes, use the Support section to report any issues.",
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
   Widget _buildFAQ(String question, String answer) {
-    return ExpansionTile(
-      leading: const Icon(Icons.help_outline, color: Colors.blueAccent),
-      title: Text(question),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(answer),
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: ExpansionTile(
+        leading: const Icon(Icons.help_outline, color: lightBlue),
+        title: Text(
+          question,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: darkBlue),
         ),
-      ],
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(answer, style: const TextStyle(color: grayBlue)),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,11 +8,15 @@ class HelpSupportPage extends StatefulWidget {
 }
 
 class _HelpSupportPageState extends State<HelpSupportPage> {
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color lightBlue = Color(0xFF63ADF2);
+  static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color paleBlue = Color(0xFFA7CCED);
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
 
-  // Sample FAQs
   final List<Map<String, String>> faqs = [
     {
       'question': 'How can I book a service?',
@@ -40,11 +44,9 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
 
   void _submitQuery() {
     if (_formKey.currentState!.validate()) {
-      // You can integrate Firebase or email API here
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Your query has been submitted!')),
       );
-
       _subjectController.clear();
       _messageController.clear();
     }
@@ -53,9 +55,14 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: paleBlue.withOpacity(0.2),
       appBar: AppBar(
-        title: const Text('Help & Support'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text(
+          'Help & Support',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: darkBlue,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -64,29 +71,55 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
           children: [
             const Text(
               'Frequently Asked Questions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             const SizedBox(height: 10),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: faqs.length,
-              itemBuilder: (context, index) {
-                return ExpansionTile(
-                  title: Text(faqs[index]['question']!),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(faqs[index]['answer']!),
+            Card(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: faqs.length,
+                itemBuilder: (context, index) {
+                  return ExpansionTile(
+                    iconColor: lightBlue,
+                    collapsedIconColor: grayBlue,
+                    title: Text(
+                      faqs[index]['question']!,
+                      style: const TextStyle(
+                        color: darkBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ],
-                );
-              },
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          faqs[index]['answer']!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 30),
             const Text(
               'Contact Support',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             const SizedBox(height: 10),
             Form(
@@ -95,38 +128,61 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
                 children: [
                   TextFormField(
                     controller: _subjectController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Subject',
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: darkBlue),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: lightBlue),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a subject';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter a subject'
+                        : null,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _messageController,
                     maxLines: 5,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Message',
-                      border: OutlineInputBorder(),
+                      labelStyle: const TextStyle(color: darkBlue),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: lightBlue),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your message';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter your message'
+                        : null,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _submitQuery,
-                      child: const Text('Submit'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: lightBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
                 ],

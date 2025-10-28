@@ -10,6 +10,11 @@ class CustomerSettingsPage extends StatefulWidget {
 }
 
 class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
+  static const Color darkBlue = Color(0xFF304D6D);
+  static const Color lightBlue = Color(0xFF63ADF2);
+  static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color paleBlue = Color(0xFFA7CCED);
+
   bool _notificationsEnabled = true;
   final _auth = FirebaseAuth.instance;
 
@@ -40,18 +45,32 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Change Password"),
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Change Password",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: TextField(
           controller: newPasswordController,
           obscureText: true,
-          decoration: const InputDecoration(hintText: "Enter new password"),
+          decoration: const InputDecoration(
+            hintText: "Enter new password",
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: grayBlue)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: lightBlue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             onPressed: () async {
               try {
                 await _auth.currentUser!.updatePassword(
@@ -80,17 +99,27 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
     final confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Account"),
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Delete Account",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.redAccent,
+          ),
+        ),
         content: const Text(
           "Are you sure you want to permanently delete your account? This action cannot be undone.",
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: const Text("Cancel", style: TextStyle(color: grayBlue)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Delete"),
           ),
@@ -104,7 +133,6 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Account deleted successfully")),
         );
-        // Navigate to login or onboarding screen
         Navigator.pushReplacementNamed(context, '/login');
       } catch (e) {
         ScaffoldMessenger.of(
@@ -114,41 +142,89 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
     }
   }
 
+  Widget _buildFAQ(String question, String answer) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: paleBlue.withOpacity(0.4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        iconColor: darkBlue,
+        collapsedIconColor: darkBlue,
+        leading: const Icon(Icons.help_outline, color: darkBlue),
+        title: Text(
+          question,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: darkBlue),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(answer, style: const TextStyle(color: darkBlue)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: paleBlue.withOpacity(0.15),
       appBar: AppBar(
-        title: const Text("Settings"),
-        backgroundColor: Colors.blueAccent,
+        title: const Text(
+          "Settings",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: darkBlue,
+        foregroundColor: Colors.white,
+        elevation: 2,
       ),
       body: ListView(
         children: [
           const SizedBox(height: 10),
-          ListTile(
-            leading: const Icon(Icons.lock_outline, color: Colors.blueAccent),
-            title: const Text("Change Password"),
-            onTap: _changePassword,
-          ),
-          SwitchListTile(
-            secondary: const Icon(
-              Icons.notifications_active_outlined,
-              color: Colors.blueAccent,
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            title: const Text("Enable Notifications"),
-            value: _notificationsEnabled,
-            onChanged: _toggleNotifications,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.lock_outline, color: lightBlue),
+                  title: const Text("Change Password"),
+                  onTap: _changePassword,
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(
+                    Icons.notifications_active_outlined,
+                    color: lightBlue,
+                  ),
+                  title: const Text("Enable Notifications"),
+                  value: _notificationsEnabled,
+                  onChanged: _toggleNotifications,
+                  activeColor: lightBlue,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text(
+                    "Delete Account",
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                  onTap: _deleteAccount,
+                ),
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            title: const Text("Delete Account"),
-            onTap: _deleteAccount,
-          ),
-          const Divider(),
           const Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
             child: Text(
               "FAQs",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
           ),
           _buildFAQ(
@@ -167,21 +243,9 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
             "Can I report an issue?",
             "Yes, you can report problems from the Support or Contact Us section.",
           ),
+          const SizedBox(height: 20),
         ],
       ),
-    );
-  }
-
-  Widget _buildFAQ(String question, String answer) {
-    return ExpansionTile(
-      leading: const Icon(Icons.help_outline, color: Colors.blueAccent),
-      title: Text(question),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(answer),
-        ),
-      ],
     );
   }
 }

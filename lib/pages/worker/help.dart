@@ -15,25 +15,25 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
   // Color scheme
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
-  static const Color paleBlue = Color(0xFFA7CCED);
   static const Color grayBlue = Color(0xFF82A0BC);
+  static const Color paleBlue = Color(0xFFA7CCED);
 
   // Sample FAQs for Workers
   final List<Map<String, String>> faqs = [
     {
       'question': 'How do I receive job requests?',
       'answer':
-          'Job requests appear on your dashboard. You can accept or decline them.',
+          'Job requests appear on your dashboard. You can accept or decline them as per your availability.',
     },
     {
       'question': 'How can I update my skills or services?',
       'answer':
-          'Go to the Profile page and tap "Edit Profile" to update your skills or services.',
+          'Go to your Profile page, tap on “Edit Profile”, and update your skills or services anytime.',
     },
     {
       'question': 'How can I withdraw earnings?',
       'answer':
-          'Earnings can be withdrawn from the Wallet section in your dashboard.',
+          'You can withdraw your earnings through the Wallet section in your dashboard once the job is completed.',
     },
   ];
 
@@ -59,10 +59,15 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: paleBlue,
+      backgroundColor: paleBlue.withOpacity(0.2),
       appBar: AppBar(
-        title: const Text('Help & Support'),
+        title: const Text(
+          'Help & Support',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: darkBlue,
+        foregroundColor: Colors.white,
+        elevation: 3,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -71,7 +76,11 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
           children: [
             const Text(
               'Frequently Asked Questions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             const SizedBox(height: 10),
             ListView.builder(
@@ -80,13 +89,20 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
               itemCount: faqs.length,
               itemBuilder: (context, index) {
                 return Card(
-                  color: grayBlue.withValues(alpha: 0.2),
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  color: Colors.white,
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: ExpansionTile(
+                    iconColor: lightBlue,
+                    collapsedIconColor: darkBlue,
+                    leading: const Icon(Icons.help_outline, color: darkBlue),
                     title: Text(
                       faqs[index]['question']!,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: darkBlue,
                       ),
                     ),
@@ -106,85 +122,114 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
             const SizedBox(height: 30),
             const Text(
               'Contact Support',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: darkBlue,
+              ),
             ),
             const SizedBox(height: 10),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: _subjectController,
-                    decoration: InputDecoration(
-                      labelText: 'Subject',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: darkBlue),
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _subjectController,
+                        decoration: InputDecoration(
+                          labelText: 'Subject',
+                          labelStyle: const TextStyle(color: darkBlue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: grayBlue),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: lightBlue,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: paleBlue.withOpacity(0.2),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a subject';
+                          }
+                          return null;
+                        },
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: lightBlue,
-                          width: 2,
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _messageController,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          labelText: 'Message',
+                          labelStyle: const TextStyle(color: darkBlue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: grayBlue),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: lightBlue,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: paleBlue.withOpacity(0.2),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your message';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _submitQuery,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: darkBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Submit',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a subject';
-                      }
-                      return null;
-                    },
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _messageController,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      labelText: 'Message',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: darkBlue),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: lightBlue,
-                          width: 2,
-                        ),
-                      ),
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your message';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitQuery,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: darkBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Submit',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Text(
+                "We'll get back to you within 24 hours.",
+                style: TextStyle(
+                  color: grayBlue.withOpacity(0.9),
+                  fontSize: 14,
+                ),
               ),
             ),
           ],
