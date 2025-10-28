@@ -98,7 +98,7 @@ class _AvailableAgentsPageState extends State<AvailableAgentsPage> {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Confirm Job Request 2'),
+            title: const Text('Confirm Job Request'),
             content: Text(
               'Send a request to "$agentName" for "${widget.selectedService}"?',
             ),
