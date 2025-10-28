@@ -55,7 +55,7 @@ class _HelpSupportPageState extends State<HelpSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: paleBlue.withOpacity(0.2),
+      backgroundColor: paleBlue.withValues(alpha: 0.2),
       appBar: AppBar(
         title: const Text(
           'Help & Support',

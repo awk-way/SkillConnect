@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -73,7 +74,9 @@ class _MyWorkersPageState extends State<MyWorkersPage> {
                 );
               }
             } catch (e) {
-              print("Error fetching worker details: $e");
+              if (kDebugMode) {
+                print("Error fetching worker details: $e");
+              }
             }
             return null;
           }).toList();

@@ -145,7 +145,7 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
   Widget _buildFAQ(String question, String answer) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      color: paleBlue.withOpacity(0.4),
+      color: paleBlue.withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         iconColor: darkBlue,
@@ -168,7 +168,7 @@ class _CustomerSettingsPageState extends State<CustomerSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: paleBlue.withOpacity(0.15),
+      backgroundColor: paleBlue.withValues(alpha: 0.15),
       appBar: AppBar(
         title: const Text(
           "Settings",

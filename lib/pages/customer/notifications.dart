@@ -149,7 +149,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
           if (!notification.isRead) {
             _markAsRead(notification.id);
           }
-          // TODO: Implement navigation to the relevant page (e.g., job details)
         },
       ),
     );

@@ -59,7 +59,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: paleBlue.withOpacity(0.2),
+      backgroundColor: paleBlue.withValues(alpha: 0.2),
       appBar: AppBar(
         title: const Text(
           'Help & Support',
@@ -158,7 +158,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
                             ),
                           ),
                           filled: true,
-                          fillColor: paleBlue.withOpacity(0.2),
+                          fillColor: paleBlue.withValues(alpha: 0.2),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -186,7 +186,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
                             ),
                           ),
                           filled: true,
-                          fillColor: paleBlue.withOpacity(0.2),
+                          fillColor: paleBlue.withValues(alpha: 0.2),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -227,7 +227,7 @@ class _WorkerHelpSupportPageState extends State<WorkerHelpSupportPage> {
               child: Text(
                 "We'll get back to you within 24 hours.",
                 style: TextStyle(
-                  color: grayBlue.withOpacity(0.9),
+                  color: grayBlue.withValues(alpha: 0.9),
                   fontSize: 14,
                 ),
               ),
