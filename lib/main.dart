@@ -12,6 +12,8 @@ import 'package:skillconnect/pages/customer/settings.dart';
 import 'package:skillconnect/pages/worker/editprofile.dart';
 import 'package:skillconnect/pages/worker/help.dart';
 import 'package:skillconnect/pages/worker/home.dart';
+import 'package:skillconnect/pages/worker/myjobs.dart';
+import 'package:skillconnect/pages/worker/jobdetails.dart';
 import 'package:skillconnect/pages/worker/profile.dart';
 import 'firebase_options.dart';
 
@@ -69,6 +71,9 @@ class SkillConnectApp extends StatelessWidget {
         '/worker/profile': (context) => WorkerProfilePage(),
         '/worker/help': (context) => WorkerHelpSupportPage(),
         '/worker/editprofile': (context) => WorkerEditProfilePage(),
+        '/worker/myjobs': (context) => const MyJobsPage(),
+        '/worker/jobdetails': (context) =>
+            const WorkerJobDetailsPage(jobData: {}),
       },
     );
   }

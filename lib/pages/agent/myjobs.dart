@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:skillconnect/pages/agent/showreviews.dart'; // ✅ Import your reviews page
 
 // --- Data Model for a Job ---
 class AgentJob {
@@ -30,7 +31,6 @@ class AgentJobsPage extends StatefulWidget {
 }
 
 class AgentJobsPageState extends State<AgentJobsPage> {
-  // --- UI Color Scheme ---
   static const Color darkBlue = Color(0xFF304D6D);
   static const Color lightBlue = Color(0xFF63ADF2);
   static const Color grayBlue = Color(0xFF82A0BC);
@@ -46,9 +46,6 @@ class AgentJobsPageState extends State<AgentJobsPage> {
   void _setupJobsStream() {
     final agentId = FirebaseAuth.instance.currentUser?.uid;
     if (agentId == null) return;
-
-    // This query now fetches only past jobs, making it more efficient.
-    // NOTE: This will require a new composite index in Firestore.
     _jobsStream = FirebaseFirestore.instance
         .collection('jobs')
         .where('agentId', isEqualTo: agentId)
@@ -76,9 +73,7 @@ class AgentJobsPageState extends State<AgentJobsPage> {
                 );
               }
             } catch (e) {
-              if (kDebugMode) {
-                print("Error processing job: $e");
-              }
+              if (kDebugMode) print("Error processing job: $e");
             }
             return null;
           }).toList();
@@ -99,7 +94,6 @@ class AgentJobsPageState extends State<AgentJobsPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: false,
-        // The TabBar has been removed.
       ),
       body: StreamBuilder<List<AgentJob>>(
         stream: _jobsStream,
@@ -110,7 +104,6 @@ class AgentJobsPageState extends State<AgentJobsPage> {
             );
           }
           if (snapshot.hasError) {
-            // Provide a helpful message if the required index is missing.
             if (snapshot.error.toString().contains(
               'firestore/failed-precondition',
             )) {
@@ -123,7 +116,6 @@ class AgentJobsPageState extends State<AgentJobsPage> {
           }
 
           final pastJobs = snapshot.data!;
-          // The TabBarView has been removed, now we just show a single list.
           return _buildJobList(pastJobs);
         },
       ),
@@ -140,42 +132,54 @@ class AgentJobsPageState extends State<AgentJobsPage> {
     );
   }
 
+  // ✅ Each card now opens the showreviews.dart page
   Widget _buildJobCard(AgentJob job) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    job.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: darkBlue,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ShowReviewsPage(jobId: job.id), // ✅ Navigate to reviews page
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      job.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue,
+                      ),
                     ),
                   ),
-                ),
-                _buildStatusChip(job.status),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Customer: ${job.customerName}",
-              style: const TextStyle(color: grayBlue),
-            ),
-            Text(
-              "Date: ${DateFormat('d MMM yyyy, h:mm a').format(job.createdAt.toDate())}",
-              style: const TextStyle(color: grayBlue),
-            ),
-          ],
+                  _buildStatusChip(job.status),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Customer: ${job.customerName}",
+                style: const TextStyle(color: grayBlue),
+              ),
+              Text(
+                "Date: ${DateFormat('d MMM yyyy, h:mm a').format(job.createdAt.toDate())}",
+                style: const TextStyle(color: grayBlue),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -190,7 +194,7 @@ class AgentJobsPageState extends State<AgentJobsPage> {
       case 'Cancelled':
         color = Colors.red;
         break;
-      default: // Should not happen with the new query, but good for safety.
+      default:
         color = Colors.grey;
     }
     return Chip(
@@ -227,7 +231,6 @@ class AgentJobsPageState extends State<AgentJobsPage> {
     );
   }
 
-  // A helper widget to guide the user to create the necessary Firestore index.
   Widget _buildIndexErrorState() {
     return const Center(
       child: Padding(

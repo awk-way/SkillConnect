@@ -133,6 +133,18 @@ class WorkerProfilePageState extends State<WorkerProfilePage> {
           ),
           Text(email, style: const TextStyle(fontSize: 14, color: grayBlue)),
           const SizedBox(height: 30),
+
+          // 🆕 Past Jobs Option (added before Info Card)
+          _buildOptionTile(
+            Icons.history,
+            'Past Jobs',
+            onTap: () {
+              Navigator.of(context).pushNamed('/worker/myjobs');
+            },
+          ),
+          const SizedBox(height: 10),
+
+          // Existing Info Card
           _buildInfoCard(),
           const SizedBox(height: 20),
           _buildServicesCard(services),
