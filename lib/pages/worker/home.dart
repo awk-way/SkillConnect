@@ -374,7 +374,7 @@ class _NewJobCardState extends State<NewJobCard> {
 
   @override
   Widget build(BuildContext context) {
-    final id = widget.jobData['id'] ?? 'N/A';
+    final id = widget.jobId;
     final title = widget.jobData['title'] ?? 'No Title';
     final timestamp = widget.jobData['createdAt'] as Timestamp?;
     final date = timestamp != null
